@@ -1,0 +1,105 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sandbox\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Logger.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Logger.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Timer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Timer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp",
+              "RelativeDocumentMoniker": "Sandbox\\main.cpp",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp",
+              "RelativeToolTip": "Sandbox\\main.cpp",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-21T17:12:11.857Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Timer.cpp",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.cpp",
+              "RelativeDocumentMoniker": "Engine\\Core\\Timer.cpp",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.cpp",
+              "RelativeToolTip": "Engine\\Core\\Timer.cpp",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAwDkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-21T17:11:09.071Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Timer.h",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.h",
+              "RelativeDocumentMoniker": "Engine\\Core\\Timer.h",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.h",
+              "RelativeToolTip": "Engine\\Core\\Timer.h",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABMAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-21T17:08:42.467Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Logger.h",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
+              "RelativeDocumentMoniker": "Engine\\Core\\Logger.h",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
+              "RelativeToolTip": "Engine\\Core\\Logger.h",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-05-21T17:04:53.85Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Logger.cpp",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp",
+              "RelativeDocumentMoniker": "Engine\\Core\\Logger.cpp",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp",
+              "RelativeToolTip": "Engine\\Core\\Logger.cpp",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAAwCAAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-05-21T17:03:05.529Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

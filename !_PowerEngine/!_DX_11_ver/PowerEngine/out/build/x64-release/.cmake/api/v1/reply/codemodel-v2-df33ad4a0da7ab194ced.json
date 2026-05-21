@@ -1,0 +1,128 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "SDL2::SDL2::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-SDL2__SDL2-Release-64b9e728e114f9d8fd79.json",
+					"name" : "SDL2::SDL2",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "SDL2::SDL2main::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-SDL2__SDL2main-Release-d366ea6c20b73d49f7f6.json",
+					"name" : "SDL2::SDL2main",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1
+					],
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Release-f6f22219c74102c3da70.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "Engine",
+					"jsonFile" : "directory-Engine-Release-cb72d5849e5d50fa91e4.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Engine",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "Sandbox",
+					"jsonFile" : "directory-Sandbox-Release-f88f6c733b33c1aa1c34.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Sandbox",
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "PowerEngine",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "Engine::@8f69bdd092c897d92c1e",
+					"jsonFile" : "target-Engine-Release-1d1890ad3d17ae443098.json",
+					"name" : "Engine",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "Sandbox::@df4fa095c2a3dbacf8fe",
+					"jsonFile" : "target-Sandbox-Release-2325a9113a6eb5a94493.json",
+					"name" : "Sandbox",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-release",
+		"source" : "C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	}
+}

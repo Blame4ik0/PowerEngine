@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/cmake_install.cmake",
+		"C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/Engine/cmake_install.cmake",
+		"C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/Sandbox/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

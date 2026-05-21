@@ -1,0 +1,11 @@
+# ninja log v7
+7	19	8010868675687344	clean	4657a475079c8ec1
+14	55	8010868676047342	Engine/CMakeFiles/Engine.dir/Platform/Window.cpp.obj	ab0fdf3bfcda976b
+17	58	8010868676077356	Engine/CMakeFiles/Engine.dir/Renderer/RenderContext.cpp.obj	9da9d827376bc771
+11	211	8010868676017384	Engine/CMakeFiles/Engine.dir/Core/Timer.cpp.obj	39466aaa476329a4
+21	1513	8010868676107393	Sandbox/CMakeFiles/Sandbox.dir/main.cpp.obj	197155f5b5c66857
+8	1901	8010868675977412	Engine/CMakeFiles/Engine.dir/Core/Logger.cpp.obj	bda0f689ef49896
+1901	1940	8010868694910350	Engine/Engine.lib	440f20a2f4a4e342
+1940	3045	8010868695309269	bin/Sandbox.exe	fcf874d1052b01d4
+36	1560	8010872058209728	Sandbox/CMakeFiles/Sandbox.dir/main.cpp.obj	197155f5b5c66857
+1562	2888	8010872073467285	bin/Sandbox.exe	fcf874d1052b01d4
