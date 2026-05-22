@@ -17,9 +17,8 @@
     "\\Engine\\Core",
     "\\Engine\\Platform",
     "\\Engine\\Renderer",
-    "\\out\\build",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\CMakeLists.txt",
+  "SelectedNode": "\\Engine\\Core\\Timer.cpp",
   "PreviewInSolutionExplorer": false
 }

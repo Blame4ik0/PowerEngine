@@ -1,0 +1,18 @@
+# Visual Studio temporary files
+.vs/
+*.ipch
+ipch/
+
+# CMake build directories (very recommended)
+build/
+out/
+_build/
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+
+# Other common junk
+*.pdb
+*.exe
+*.obj
+*.o

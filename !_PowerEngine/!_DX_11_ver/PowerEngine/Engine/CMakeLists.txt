@@ -3,7 +3,7 @@ add_library(Engine STATIC
     Core/Timer.cpp
     Platform/Window.cpp
     Renderer/RenderContext.cpp
- "Core/Logger.h" "Core/Timer.h")
+ "Core/Logger.h" "Core/Timer.h" "Platform/Window.h" "Renderer/RenderContext.h")
 
 target_include_directories(Engine
     PUBLIC

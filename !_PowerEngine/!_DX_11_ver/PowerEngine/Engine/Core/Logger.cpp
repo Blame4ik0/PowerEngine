@@ -24,13 +24,13 @@ namespace Engine
     void Logger::Log(Level level, const std::string& message)
     {
         const char* levelColor = CYAN;
-        const char* levelTag = "INFO ";
+        const char* levelTag = "INFO";
 
         switch (level)
         {
         case Level::Warn:
             levelColor = YELLOW;
-            levelTag = "WARN ";
+            levelTag = "WARN";
             break;
         case Level::Error:
             levelColor = RED;
