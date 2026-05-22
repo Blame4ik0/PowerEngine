@@ -15,10 +15,10 @@
     "",
     "\\Engine",
     "\\Engine\\Core",
+    "\\Engine\\Input",
     "\\Engine\\Platform",
     "\\Engine\\Renderer",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\Engine\\Core\\Timer.cpp",
   "PreviewInSolutionExplorer": false
 }

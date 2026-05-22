@@ -3,7 +3,9 @@ add_library(Engine STATIC
     Core/Timer.cpp
     Platform/Window.cpp
     Renderer/RenderContext.cpp
- "Core/Logger.h" "Core/Timer.h" "Platform/Window.h" "Renderer/RenderContext.h")
+    Input/InputManager.cpp
+    Input/GamepadManager.cpp
+ "Core/Logger.h" "Core/Timer.h" "Platform/Window.h" "Renderer/RenderContext.h" "Input/InputManager.h" "Input/GamepadManager.h")
 
 target_include_directories(Engine
     PUBLIC
@@ -17,6 +19,7 @@ target_link_libraries(Engine
         d3d11.lib
         dxgi.lib
         d3dcompiler.lib
+        xinput.lib
 )
 
 target_compile_definitions(Engine PUBLIC
