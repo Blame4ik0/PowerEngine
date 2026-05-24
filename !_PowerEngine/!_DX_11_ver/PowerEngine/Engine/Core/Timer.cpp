@@ -48,7 +48,7 @@ namespace Engine
 
     float Timer::DeltaTime() const { return m_deltaTime; }
 
-    float Timer::TotalTime()  const
+    float Timer::TotalTime() const
     {
         return static_cast<float>(m_currentTime - m_startTime)
             / static_cast<float>(m_frequency);

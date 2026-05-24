@@ -121,6 +121,50 @@ build Engine\CMakeFiles\Engine.dir\Renderer\RenderContext.cpp.obj: CXX_COMPILER_
   TARGET_PDB = Engine\Engine.pdb
   TARGET_SUPPORT_DIR = Engine\CMakeFiles\Engine.dir
 
+build Engine\CMakeFiles\Engine.dir\Input\InputManager.cpp.obj: CXX_COMPILER__Engine_unscanned_Debug C$:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine\Input\InputManager.cpp || cmake_object_order_depends_target_Engine
+  CONFIG = Debug
+  DEFINES = -DNOMINMAX -DUNICODE -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd
+  INCLUDES = -IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include\SDL2 -external:W0
+  OBJECT_DIR = Engine\CMakeFiles\Engine.dir
+  OBJECT_FILE_DIR = Engine\CMakeFiles\Engine.dir\Input
+  TARGET_COMPILE_PDB = Engine\CMakeFiles\Engine.dir\Engine.pdb
+  TARGET_PDB = Engine\Engine.pdb
+  TARGET_SUPPORT_DIR = Engine\CMakeFiles\Engine.dir
+
+build Engine\CMakeFiles\Engine.dir\Input\GamepadManager.cpp.obj: CXX_COMPILER__Engine_unscanned_Debug C$:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine\Input\GamepadManager.cpp || cmake_object_order_depends_target_Engine
+  CONFIG = Debug
+  DEFINES = -DNOMINMAX -DUNICODE -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd
+  INCLUDES = -IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include\SDL2 -external:W0
+  OBJECT_DIR = Engine\CMakeFiles\Engine.dir
+  OBJECT_FILE_DIR = Engine\CMakeFiles\Engine.dir\Input
+  TARGET_COMPILE_PDB = Engine\CMakeFiles\Engine.dir\Engine.pdb
+  TARGET_PDB = Engine\Engine.pdb
+  TARGET_SUPPORT_DIR = Engine\CMakeFiles\Engine.dir
+
+build Engine\CMakeFiles\Engine.dir\Renderer\Renderer2D.cpp.obj: CXX_COMPILER__Engine_unscanned_Debug C$:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine\Renderer\Renderer2D.cpp || cmake_object_order_depends_target_Engine
+  CONFIG = Debug
+  DEFINES = -DNOMINMAX -DUNICODE -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd
+  INCLUDES = -IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include\SDL2 -external:W0
+  OBJECT_DIR = Engine\CMakeFiles\Engine.dir
+  OBJECT_FILE_DIR = Engine\CMakeFiles\Engine.dir\Renderer
+  TARGET_COMPILE_PDB = Engine\CMakeFiles\Engine.dir\Engine.pdb
+  TARGET_PDB = Engine\Engine.pdb
+  TARGET_SUPPORT_DIR = Engine\CMakeFiles\Engine.dir
+
+build Engine\CMakeFiles\Engine.dir\Renderer\Shader.cpp.obj: CXX_COMPILER__Engine_unscanned_Debug C$:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine\Renderer\Shader.cpp || cmake_object_order_depends_target_Engine
+  CONFIG = Debug
+  DEFINES = -DNOMINMAX -DUNICODE -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd
+  INCLUDES = -IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\Engine -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include -external:IC:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\include\SDL2 -external:W0
+  OBJECT_DIR = Engine\CMakeFiles\Engine.dir
+  OBJECT_FILE_DIR = Engine\CMakeFiles\Engine.dir\Renderer
+  TARGET_COMPILE_PDB = Engine\CMakeFiles\Engine.dir\Engine.pdb
+  TARGET_PDB = Engine\Engine.pdb
+  TARGET_SUPPORT_DIR = Engine\CMakeFiles\Engine.dir
+
 
 # =============================================================================
 # Link build statements for STATIC_LIBRARY target Engine
@@ -129,12 +173,12 @@ build Engine\CMakeFiles\Engine.dir\Renderer\RenderContext.cpp.obj: CXX_COMPILER_
 #############################################
 # Link the static library Engine\Engine.lib
 
-build Engine\Engine.lib: CXX_STATIC_LIBRARY_LINKER__Engine_Debug Engine\CMakeFiles\Engine.dir\Core\Logger.cpp.obj Engine\CMakeFiles\Engine.dir\Core\Timer.cpp.obj Engine\CMakeFiles\Engine.dir\Platform\Window.cpp.obj Engine\CMakeFiles\Engine.dir\Renderer\RenderContext.cpp.obj
+build Engine\Engine.lib: CXX_STATIC_LIBRARY_LINKER__Engine_Debug Engine\CMakeFiles\Engine.dir\Core\Logger.cpp.obj Engine\CMakeFiles\Engine.dir\Core\Timer.cpp.obj Engine\CMakeFiles\Engine.dir\Platform\Window.cpp.obj Engine\CMakeFiles\Engine.dir\Renderer\RenderContext.cpp.obj Engine\CMakeFiles\Engine.dir\Input\InputManager.cpp.obj Engine\CMakeFiles\Engine.dir\Input\GamepadManager.cpp.obj Engine\CMakeFiles\Engine.dir\Renderer\Renderer2D.cpp.obj Engine\CMakeFiles\Engine.dir\Renderer\Shader.cpp.obj
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd
   LINK_FLAGS = /machine:x64
   OBJECT_DIR = Engine\CMakeFiles\Engine.dir
-  POST_BUILD = cd .
+  POST_BUILD = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\out\build\x64-debug\Engine && "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_directory C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/Engine/Renderer/Shaders C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/bin/Shaders"
   PRE_LINK = cd .
   TARGET_COMPILE_PDB = Engine\CMakeFiles\Engine.dir\Engine.pdb
   TARGET_FILE = Engine\Engine.lib
@@ -201,7 +245,7 @@ build bin\Sandbox.exe: CXX_EXECUTABLE_LINKER__Sandbox_Debug Sandbox\CMakeFiles\S
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /Ob0 /Od /RTC1 -MDd
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
-  LINK_LIBRARIES = Engine\Engine.lib  C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\debug\lib\SDL2d.lib  C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\debug\lib\manual-link\SDL2maind.lib  shell32.lib  d3d11.lib  dxgi.lib  d3dcompiler.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = Engine\Engine.lib  C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\debug\lib\SDL2d.lib  C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_ASSETS\!_vcpkg\installed\x64-windows\debug\lib\manual-link\SDL2maind.lib  shell32.lib  d3d11.lib  dxgi.lib  d3dcompiler.lib  xinput.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = Sandbox\CMakeFiles\Sandbox.dir
   POST_BUILD = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\out\build\x64-debug\Sandbox && C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_ASSETS/!_vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/bin/Sandbox.exe -installedDir C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_ASSETS/!_vcpkg/installed/x64-windows/debug/bin -OutVariable out && cd /D C:\Users\blame\Desktop\Software\PowerEngine\!_PowerEngine\!_DX_11_ver\PowerEngine\out\build\x64-debug\Sandbox && "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E copy_if_different C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_ASSETS/!_vcpkg/installed/x64-windows/debug/bin/SDL2d.dll C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine/out/build/x64-debug/bin"
   PRE_LINK = cd .

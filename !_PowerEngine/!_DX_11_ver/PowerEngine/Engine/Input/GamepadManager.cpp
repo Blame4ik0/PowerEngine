@@ -46,7 +46,6 @@ namespace Engine
             bool wasConnected = state.connected;
             state.connected = (XInputGetState(i, &xstate) == ERROR_SUCCESS);
 
-            // Log connect / disconnect events
             if (state.connected && !wasConnected)
                 LOG_INFO("Gamepad {} connected.", i);
             else if (!state.connected && wasConnected)
@@ -58,11 +57,9 @@ namespace Engine
                 continue;
             }
 
-            // Snapshot previous buttons before reading new ones
             state.previousButtons = state.buttons;
             state.buttons = xstate.Gamepad.wButtons;
 
-            // Normalize sticks with radial deadzone
             state.leftStickX = ApplyDeadzone(
                 static_cast<float>(xstate.Gamepad.sThumbLX), STICK_MAX, STICK_DEADZONE);
             state.leftStickY = ApplyDeadzone(
@@ -72,7 +69,6 @@ namespace Engine
             state.rightStickY = ApplyDeadzone(
                 static_cast<float>(xstate.Gamepad.sThumbRY), STICK_MAX, STICK_DEADZONE);
 
-            // Normalize triggers
             state.leftTrigger = ApplyDeadzone(
                 static_cast<float>(xstate.Gamepad.bLeftTrigger), TRIGGER_MAX, TRIGGER_DEADZONE);
             state.rightTrigger = ApplyDeadzone(
@@ -147,7 +143,6 @@ namespace Engine
     void GamepadManager::SetRumble(int index, float leftMotor, float rightMotor)
     {
         if (!IsConnected(index)) return;
-
         XINPUT_VIBRATION vibration{};
         vibration.wLeftMotorSpeed = static_cast<WORD>(leftMotor * 65535.0f);
         vibration.wRightMotorSpeed = static_cast<WORD>(rightMotor * 65535.0f);

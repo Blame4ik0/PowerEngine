@@ -18,7 +18,9 @@
     "\\Engine\\Input",
     "\\Engine\\Platform",
     "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
+  "SelectedNode": "\\Engine",
   "PreviewInSolutionExplorer": false
 }
