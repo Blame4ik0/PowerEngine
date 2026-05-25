@@ -3,7 +3,7 @@ set(CMAKE_HOST_SYSTEM_NAME "Windows")
 set(CMAKE_HOST_SYSTEM_VERSION "10.0.26200")
 set(CMAKE_HOST_SYSTEM_PROCESSOR "AMD64")
 
-include("C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_ASSETS/!_vcpkg/scripts/buildsystems/vcpkg.cmake")
+include("C:/!_DEV/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 set(CMAKE_SYSTEM "Windows-10.0.26200")
 set(CMAKE_SYSTEM_NAME "Windows")

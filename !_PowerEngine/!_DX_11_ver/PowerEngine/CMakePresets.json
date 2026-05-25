@@ -10,7 +10,7 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "CMAKE_TOOLCHAIN_FILE": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_ASSETS\\!_vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "C:\\!_DEV\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
             },
             "condition": {
                 "type": "equals",

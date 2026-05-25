@@ -7,17 +7,12 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sandbox\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-<<<<<<< HEAD
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Renderer2D.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\RenderContext.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Renderer2D.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\Quad.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shaders\\Quad.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\RenderContext.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\GamepadManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -36,24 +31,6 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Input\\InputManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-=======
->>>>>>> parent of dfbd2bf3 (Inputs system)
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\RenderContext.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\RenderContext.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Platform\\Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -66,17 +43,6 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Timer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-<<<<<<< HEAD
-=======
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Logger.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Logger.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
->>>>>>> parent of dfbd2bf3 (Inputs system)
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Core\\Timer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -96,60 +62,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "RenderContext.cpp",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\RenderContext.cpp",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp",
-              "RelativeToolTip": "Engine\\Renderer\\RenderContext.cpp",
-              "ViewState": "AgIAAF8AAAAAAAAAAAAAwHoAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-22T11:43:21.778Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "RenderContext.h",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\RenderContext.h",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h",
-              "RelativeToolTip": "Engine\\Renderer\\RenderContext.h",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAwCoAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-22T11:42:21.937Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Window.cpp",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.cpp",
-              "RelativeDocumentMoniker": "Engine\\Platform\\Window.cpp",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.cpp",
-              "RelativeToolTip": "Engine\\Platform\\Window.cpp",
-              "ViewState": "AgIAACUAAAAAAAAAAAAAwEAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-22T11:38:43.664Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Window.h",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.h",
-              "RelativeDocumentMoniker": "Engine\\Platform\\Window.h",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.h",
-              "RelativeToolTip": "Engine\\Platform\\Window.h",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAAwCUAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-22T11:36:56.789Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -158,177 +72,98 @@
               "RelativeDocumentMoniker": "Sandbox\\main.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp",
               "RelativeToolTip": "Sandbox\\main.cpp",
-<<<<<<< HEAD
-              "ViewState": "AgIAACkAAAAAAAAAAAAAAD0AAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAADUAAAAAAAAAAAAQwF4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-05-24T15:57:52.453Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "GamepadManager.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\GamepadManager.cpp",
               "RelativeDocumentMoniker": "Engine\\Input\\GamepadManager.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\GamepadManager.cpp",
               "RelativeToolTip": "Engine\\Input\\GamepadManager.cpp",
-              "ViewState": "AgIAAIgAAAAAAAAAAAAAALIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAIkAAAAAAAAAAAAQwLIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:57:42.208Z",
-=======
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-21T17:12:11.857Z",
->>>>>>> parent of dfbd2bf3 (Inputs system)
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:57:42.208Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-<<<<<<< HEAD
+              "DocumentIndex": 4,
               "Title": "GamepadManager.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\GamepadManager.h",
               "RelativeDocumentMoniker": "Engine\\Input\\GamepadManager.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\GamepadManager.h",
               "RelativeToolTip": "Engine\\Input\\GamepadManager.h",
-              "ViewState": "AgIAABwAAAAAAAAAAAAAAEYAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAQwEYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:57:35.883Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:57:35.883Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 5,
               "Title": "InputManager.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\InputManager.cpp",
               "RelativeDocumentMoniker": "Engine\\Input\\InputManager.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\InputManager.cpp",
               "RelativeToolTip": "Engine\\Input\\InputManager.cpp",
-              "ViewState": "AgIAAKoAAAAAAAAAAAAAANQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAKsAAAAAAAAAAAAQwNQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:57:26.231Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:57:26.231Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 6,
               "Title": "InputManager.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\InputManager.h",
               "RelativeDocumentMoniker": "Engine\\Input\\InputManager.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Input\\InputManager.h",
               "RelativeToolTip": "Engine\\Input\\InputManager.h",
-              "ViewState": "AgIAAE8AAAAAAAAAAAAAAHkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAFAAAAAAAAAAAAAQwHkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:57:19.861Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Quad.hlsl",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\Quad.hlsl",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Shaders\\Quad.hlsl",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\Quad.hlsl",
-              "RelativeToolTip": "Engine\\Renderer\\Shaders\\Quad.hlsl",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAA9AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-05-24T15:57:04.254Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:57:19.861Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Renderer2D.cpp",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.cpp",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Renderer2D.cpp",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.cpp",
-              "RelativeToolTip": "Engine\\Renderer\\Renderer2D.cpp",
-              "ViewState": "AgIAAGEAAAAAAAAAAAAAAIsAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:56:45.959Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Renderer2D.h",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.h",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Renderer2D.h",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Renderer2D.h",
-              "RelativeToolTip": "Engine\\Renderer\\Renderer2D.h",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAAABsAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:56:33.413Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Shader.cpp",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Shader.cpp",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp",
-              "RelativeToolTip": "Engine\\Renderer\\Shader.cpp",
-              "ViewState": "AgIAACwAAAAAAAAAAAAAAFUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:55:59.078Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "Shader.h",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Shader.h",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h",
-              "RelativeToolTip": "Engine\\Renderer\\Shader.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:55:50.22Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
               "Title": "RenderContext.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp",
               "RelativeDocumentMoniker": "Engine\\Renderer\\RenderContext.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.cpp",
               "RelativeToolTip": "Engine\\Renderer\\RenderContext.cpp",
-              "ViewState": "AgIAAFcAAAAAAAAAAAAAAHsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAQwHsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:55:06.777Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:55:06.777Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 2,
               "Title": "RenderContext.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h",
               "RelativeDocumentMoniker": "Engine\\Renderer\\RenderContext.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\RenderContext.h",
               "RelativeToolTip": "Engine\\Renderer\\RenderContext.h",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAC0AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAQwC0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:54:51.347Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:54:51.347Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 7,
               "Title": "Window.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.cpp",
               "RelativeDocumentMoniker": "Engine\\Platform\\Window.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.cpp",
               "RelativeToolTip": "Engine\\Platform\\Window.cpp",
-              "ViewState": "AgIAABoAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAQwEQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:54:30.049Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:54:30.049Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 8,
               "Title": "Window.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Platform\\Window.h",
               "RelativeDocumentMoniker": "Engine\\Platform\\Window.h",
@@ -336,31 +171,23 @@
               "RelativeToolTip": "Engine\\Platform\\Window.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:53:50.367Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:53:50.367Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
-=======
->>>>>>> parent of dfbd2bf3 (Inputs system)
+              "DocumentIndex": 9,
               "Title": "Timer.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.cpp",
               "RelativeDocumentMoniker": "Engine\\Core\\Timer.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.cpp",
               "RelativeToolTip": "Engine\\Core\\Timer.cpp",
-              "ViewState": "AgIAABAAAAAAAAAAAAAAADoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABEAAAAAAAAAAAAQwDoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-05-24T15:53:31.435Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:53:31.435Z"
             },
             {
               "$type": "Document",
-<<<<<<< HEAD
-              "DocumentIndex": 15,
-=======
-              "DocumentIndex": 8,
->>>>>>> parent of dfbd2bf3 (Inputs system)
+              "DocumentIndex": 10,
               "Title": "Timer.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Timer.h",
               "RelativeDocumentMoniker": "Engine\\Core\\Timer.h",
@@ -368,54 +195,31 @@
               "RelativeToolTip": "Engine\\Core\\Timer.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-24T15:53:30.084Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-24T15:53:30.084Z"
             },
             {
               "$type": "Document",
-<<<<<<< HEAD
-              "DocumentIndex": 16,
-=======
-              "DocumentIndex": 7,
-              "Title": "Logger.h",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
-              "RelativeDocumentMoniker": "Engine\\Core\\Logger.h",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
-              "RelativeToolTip": "Engine\\Core\\Logger.h",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-21T17:04:53.85Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
->>>>>>> parent of dfbd2bf3 (Inputs system)
+              "DocumentIndex": 11,
               "Title": "Logger.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp",
               "RelativeDocumentMoniker": "Engine\\Core\\Logger.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.cpp",
               "RelativeToolTip": "Engine\\Core\\Logger.cpp",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAAAC8AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAQwC8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-<<<<<<< HEAD
-              "WhenOpened": "2026-05-21T17:03:05.529Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-21T17:03:05.529Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 12,
               "Title": "Logger.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
               "RelativeDocumentMoniker": "Engine\\Core\\Logger.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Core\\Logger.h",
               "RelativeToolTip": "Engine\\Core\\Logger.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-05-21T17:04:53.85Z",
-              "EditorCaption": ""
-=======
-              "WhenOpened": "2026-05-21T17:03:05.529Z"
->>>>>>> parent of dfbd2bf3 (Inputs system)
+              "WhenOpened": "2026-05-21T17:04:53.85Z"
             }
           ]
         }

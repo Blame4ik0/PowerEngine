@@ -15,14 +15,11 @@
     "",
     "\\Engine",
     "\\Engine\\Core",
+    "\\Engine\\Input",
     "\\Engine\\Platform",
     "\\Engine\\Renderer",
     "\\Sandbox"
   ],
-<<<<<<< HEAD
-  "SelectedNode": "\\Engine\\CMakeLists.txt",
-=======
-  "SelectedNode": "\\Engine\\Core\\Timer.cpp",
->>>>>>> parent of dfbd2bf3 (Inputs system)
+  "SelectedNode": "\\CMakePresets.json",
   "PreviewInSolutionExplorer": false
 }
