@@ -214,7 +214,7 @@ PowerEngine_IS_TOP_LEVEL:STATIC=ON
 PowerEngine_SOURCE_DIR:STATIC=C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_DX_11_ver/PowerEngine
 
 //The directory containing a CMake configuration file for SDL2.
-SDL2_DIR:PATH=C:/Users/blame/Desktop/Software/PowerEngine/!_PowerEngine/!_ASSETS/!_vcpkg/installed/x64-windows/share/sdl2
+SDL2_DIR:PATH=SDL2_DIR-NOTFOUND
 
 //Automatically copy dependencies into the output directory for
 // executables.
@@ -349,7 +349,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //noop for ranlib
