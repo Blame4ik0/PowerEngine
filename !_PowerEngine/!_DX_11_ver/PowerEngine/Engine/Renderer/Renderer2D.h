@@ -25,6 +25,8 @@ namespace Engine
 
         void Flush();
 
+        void OnResize(int newWidth, int newHeight);
+
     private:
         void SetupOrthographicMatrix(int screenW, int screenH);
 
