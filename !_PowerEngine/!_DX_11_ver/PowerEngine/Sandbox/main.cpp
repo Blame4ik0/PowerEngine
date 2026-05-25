@@ -1,13 +1,19 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+<<<<<<< HEAD
 #include <filesystem>
+=======
+>>>>>>> parent of dfbd2bf3 (Inputs system)
 #include "Core/Logger.h"
 #include "Core/Timer.h"
 #include "Platform/Window.h"
 #include "Renderer/RenderContext.h"
+<<<<<<< HEAD
 #include "Renderer/Renderer2D.h"
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
+=======
+>>>>>>> parent of dfbd2bf3 (Inputs system)
 
 int main()
 {
@@ -20,7 +26,11 @@ int main()
     props.Title = "PowerEngine";
     props.Width = 1280;
     props.Height = 720;
+<<<<<<< HEAD
     props.VSync = true;
+=======
+    props.VSync = false;
+>>>>>>> parent of dfbd2bf3 (Inputs system)
     props.RefreshRate = 144;
 
     Engine::Window window(props);
@@ -43,13 +53,11 @@ int main()
     Engine::Timer timer;
     timer.Reset();
 
-    Engine::InputManager::Init();
-    Engine::GamepadManager::Init();
-
     LOG_INFO("Entering main loop.");
 
-    while (true)
+    while (window.PollEvents())
     {
+<<<<<<< HEAD
         Engine::InputManager::Update();
         Engine::GamepadManager::Update();
 
@@ -61,6 +69,17 @@ int main()
         renderer.Resize(window.GetWidth(), window.GetHeight());
         renderer2D.OnResize(window.GetWidth(), window.GetHeight());
         renderer.BeginFrame(0.1f, 0.1f, 0.1f, 1.0f);
+=======
+        timer.Tick();
+        const float dt = timer.DeltaTime();
+
+        renderer.Resize(window.GetWidth(), window.GetHeight());
+        renderer.BeginFrame(0.13f, 0.13f, 0.14f);
+
+        // draw calls go here later
+
+        renderer.EndFrame();
+>>>>>>> parent of dfbd2bf3 (Inputs system)
 
         // === DRAW QUADS (now with better visibility) ===
         renderer2D.DrawQuad(400.0f, 200.0f, 480.0f, 320.0f, 1.0f, 0.2f, 0.2f, 1.0f);  // Big red
@@ -70,10 +89,13 @@ int main()
         renderer.EndFrame();
     }
 
+<<<<<<< HEAD
     renderer2D.Shutdown();
     Engine::InputManager::Shutdown();
     Engine::GamepadManager::Shutdown();
 
+=======
+>>>>>>> parent of dfbd2bf3 (Inputs system)
     LOG_INFO("Shutting down.");
     return 0;
 }

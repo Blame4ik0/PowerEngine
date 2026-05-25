@@ -3,11 +3,15 @@ add_library(Engine STATIC
     Core/Timer.cpp
     Platform/Window.cpp
     Renderer/RenderContext.cpp
+<<<<<<< HEAD
     Input/InputManager.cpp
     Input/GamepadManager.cpp
     Renderer/Renderer2D.cpp
     Renderer/Shader.cpp
  "Core/Logger.h" "Core/Timer.h" "Platform/Window.h" "Renderer/RenderContext.h" "Input/InputManager.h" "Input/GamepadManager.h" "Renderer/Renderer2D.h"  "Renderer/Shader.h")
+=======
+ "Core/Logger.h" "Core/Timer.h" "Platform/Window.h" "Renderer/RenderContext.h")
+>>>>>>> parent of dfbd2bf3 (Inputs system)
 
 target_include_directories(Engine
     PUBLIC
@@ -21,7 +25,6 @@ target_link_libraries(Engine
         d3d11.lib
         dxgi.lib
         d3dcompiler.lib
-        xinput.lib
 )
 
 target_compile_definitions(Engine PUBLIC

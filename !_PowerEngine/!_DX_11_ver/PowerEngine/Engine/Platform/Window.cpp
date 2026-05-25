@@ -1,5 +1,4 @@
 #include "Window.h"
-#include "Input/InputManager.h"
 #include "Core/Logger.h"
 #include <SDL2/SDL_syswm.h>
 #include <stdexcept>
@@ -41,8 +40,6 @@ namespace Engine
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            InputManager::ProcessEvent(event);
-
             if (event.type == SDL_QUIT)
                 return false;
 
