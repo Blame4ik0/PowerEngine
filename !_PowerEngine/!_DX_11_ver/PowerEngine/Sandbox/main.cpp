@@ -5,6 +5,7 @@
 #include "Core/Timer.h"
 #include "Platform/Window.h"
 #include "Renderer/RenderContext.h"
+#include "Renderer/Renderer2D.h"
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
 
@@ -30,6 +31,13 @@ int main()
         window.GetVSync(),
         window.GetRefreshRate()
     );
+
+    Engine::Renderer2D renderer2D;
+    if (!renderer2D.Init(&renderer, L"Shaders/Polygon.hlsl"))
+    {
+        LOG_ERROR("Renderer2D init failed.");
+        return -1;
+    }
 
     Engine::Timer timer;
     timer.Reset();
@@ -72,6 +80,9 @@ int main()
 
         renderer.Resize(window.GetWidth(), window.GetHeight());
         renderer.BeginFrame(0.13f, 0.13f, 0.14f);
+
+        renderer2D.DrawTriangle();
+
         renderer.EndFrame();
 
         static float titleTimer = 0.0f;
@@ -86,6 +97,7 @@ int main()
         }
     }
 
+    renderer2D.Shutdown();
     Engine::GamepadManager::Shutdown();
     Engine::InputManager::Shutdown();
 

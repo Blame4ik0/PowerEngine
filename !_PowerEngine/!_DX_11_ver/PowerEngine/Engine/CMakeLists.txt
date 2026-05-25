@@ -5,6 +5,8 @@ add_library(Engine STATIC
     Input/GamepadManager.cpp
     Platform/Window.cpp
     Renderer/RenderContext.cpp
+    Renderer/Shader.cpp
+    Renderer/Renderer2D.cpp
 )
 
 target_include_directories(Engine
@@ -26,4 +28,10 @@ target_compile_definitions(Engine PUBLIC
     WIN32_LEAN_AND_MEAN
     NOMINMAX
     UNICODE
+)
+
+add_custom_command(TARGET Engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Shaders
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Shaders
 )

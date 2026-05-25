@@ -96,6 +96,10 @@ namespace Engine
 
     void RenderContext::BeginFrame(float r, float g, float b, float a)
     {
+        m_deviceContext->OMSetRenderTargets(1,
+            m_renderTargetView.GetAddressOf(),
+            m_depthStencilView.Get());
+
         float color[4] = { r, g, b, a };
         m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), color);
         m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(),
