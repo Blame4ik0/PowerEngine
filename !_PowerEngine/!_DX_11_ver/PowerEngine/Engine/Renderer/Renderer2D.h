@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "Camera2D.h"
 #include "Texture2D.h"
+#include "Font.h"
 #include <memory>
 #include <DirectXMath.h>
 #include <array>
@@ -45,6 +46,12 @@ namespace Engine
 
         // Polygon (3 vertices)
         void DrawPolygon(Vertex2D v0, Vertex2D v1, Vertex2D v2);
+
+		// Text rendering
+        void DrawText(const Font& font, const std::string& text,
+            float x, float y,
+            float r = 1.0f, float g = 1.0f,
+            float b = 1.0f, float a = 1.0f);
 
         int GetDrawCallCount() const { return m_drawCalls; }
         int GetQuadCount()     const { return m_quadCount; }

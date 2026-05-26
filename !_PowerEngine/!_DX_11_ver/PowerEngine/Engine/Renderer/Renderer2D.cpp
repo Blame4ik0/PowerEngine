@@ -225,6 +225,42 @@ namespace Engine
         m_vertices[m_vertexCount++] = v2;
     }
 
+    void Renderer2D::DrawText(const Font& font, const std::string& text,
+        float x, float y,
+        float r, float g, float b, float a)
+    {
+        if (!font.IsLoaded()) return;
+
+        const Texture2D& atlas = font.GetAtlas();
+        float cursorX = x;
+
+        for (char c : text)
+        {
+            if (c == '\n')
+            {
+                cursorX = x;
+                y += font.GetLineHeight();
+                continue;
+            }
+
+            const GlyphInfo& glyph = font.GetGlyph(c);
+
+            float glyphX = cursorX + glyph.offsetX;
+            float glyphY = y + glyph.offsetY + font.GetFontSize();
+
+            // Per-vertex color + correct UVs for this glyph
+            DrawQuad(
+                { glyphX,               glyphY,                r, g, b, a, glyph.u0, glyph.v0 },
+                { glyphX + glyph.width, glyphY,                r, g, b, a, glyph.u1, glyph.v0 },
+                { glyphX + glyph.width, glyphY + glyph.height, r, g, b, a, glyph.u1, glyph.v1 },
+                { glyphX,               glyphY + glyph.height, r, g, b, a, glyph.u0, glyph.v1 },
+                &atlas
+            );
+
+            cursorX += glyph.advanceX;
+        }
+    }
+
     void Renderer2D::Flush()
     {
         if (m_vertexCount == 0) return;

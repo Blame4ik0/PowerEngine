@@ -110,4 +110,43 @@ namespace Engine
     {
         ctx->PSSetShaderResources(slot, 1, m_srv.GetAddressOf());
     }
+
+    bool Texture2D::LoadFromMemory(ID3D11Device* device,
+        const unsigned char* data,
+        int width, int height)
+    {
+        m_width = width;
+        m_height = height;
+
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = static_cast<UINT>(width);
+        desc.Height = static_cast<UINT>(height);
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+        D3D11_SUBRESOURCE_DATA initData{};
+        initData.pSysMem = data;
+        initData.SysMemPitch = static_cast<UINT>(width * 4);
+
+        HRESULT hr = device->CreateTexture2D(&desc, &initData,
+            m_texture.GetAddressOf());
+        if (FAILED(hr)) { LOG_ERROR("LoadFromMemory: CreateTexture2D failed."); return false; }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        hr = device->CreateShaderResourceView(m_texture.Get(), &srvDesc,
+            m_srv.GetAddressOf());
+        if (FAILED(hr)) { LOG_ERROR("LoadFromMemory: CreateSRV failed."); return false; }
+
+        m_loaded = true;
+        return true;
+    }
 }

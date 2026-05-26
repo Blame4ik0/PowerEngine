@@ -20,6 +20,10 @@ namespace Engine
         bool LoadWhite(ID3D11Device* device);
         void Bind(ID3D11DeviceContext* ctx, unsigned int slot = 0) const;
 
+        bool LoadFromMemory(ID3D11Device* device,
+            const unsigned char* data,
+            int width, int height);
+
         bool IsLoaded()  const { return m_loaded; }
         int  GetWidth()  const { return m_width; }
         int  GetHeight() const { return m_height; }

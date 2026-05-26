@@ -8,7 +8,9 @@ add_library(Engine STATIC
     Renderer/Shader.cpp
     Renderer/Renderer2D.cpp
     Renderer/Camera2D.cpp
-    Renderer/Texture2D.cpp)
+    Renderer/Texture2D.cpp
+    Renderer/Font.cpp
+)
 
 target_include_directories(Engine
     PUBLIC

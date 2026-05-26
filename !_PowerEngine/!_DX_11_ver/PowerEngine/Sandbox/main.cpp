@@ -11,6 +11,7 @@
 #include "Renderer/Renderer2D.h"
 #include "Renderer/Camera2D.h"
 #include "Renderer/Texture2D.h"
+#include "Renderer/Font.h"
 
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
@@ -45,6 +46,9 @@ int main()
         LOG_ERROR("Renderer2D init failed.");
         return -1;
     }
+
+    Engine::Font font;
+    font.Load(renderer.GetDevice(), "montserrat_bold.ttf", 24.0f);
 
     Engine::Camera2D camera;
     camera.SetViewSize(
@@ -98,6 +102,18 @@ int main()
         renderer.BeginFrame(0.13f, 0.13f, 0.13f);
 
         renderer2D.BeginScene(camera);
+
+        // FPS counter
+        renderer2D.DrawText(font,
+            "FPS: " + std::to_string((int)timer.FPS()),
+            10.0f, 10.0f,
+            1.0f, 1.0f, 1.0f);
+
+        // Multiline test
+        renderer2D.DrawText(font,
+            "PowerEngine v0.1\nPhase 3 - 2D Renderer",
+            10.0f, 40.0f,
+            0.8f, 0.8f, 0.8f);
 
         // Solid color quads
         renderer2D.DrawQuad(100.0f, 100.0f, 300.0f, 200.0f, 1.0f, 0.3f, 0.0f);
