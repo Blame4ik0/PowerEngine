@@ -18,8 +18,8 @@
     "\\Engine\\Input",
     "\\Engine\\Platform",
     "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\CMakePresets.json",
   "PreviewInSolutionExplorer": false
 }

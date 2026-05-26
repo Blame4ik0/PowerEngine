@@ -1,11 +1,17 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <cmath>
+
 #include "Core/Logger.h"
 #include "Core/Timer.h"
+
 #include "Platform/Window.h"
+
 #include "Renderer/RenderContext.h"
 #include "Renderer/Renderer2D.h"
+#include "Renderer/Camera2D.h"
+#include "Renderer/Texture2D.h"
+
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
 
@@ -24,7 +30,8 @@ int main()
 
     Engine::Window window(props);
 
-    Engine::RenderContext renderer(
+    Engine::RenderContext renderer
+    (
         window.GetHWND(),
         window.GetWidth(),
         window.GetHeight(),
@@ -38,6 +45,11 @@ int main()
         LOG_ERROR("Renderer2D init failed.");
         return -1;
     }
+
+    Engine::Camera2D camera;
+    camera.SetViewSize(
+        static_cast<float>(window.GetWidth()),
+        static_cast<float>(window.GetHeight()));
 
     Engine::Timer timer;
     timer.Reset();
@@ -58,43 +70,57 @@ int main()
         timer.Tick();
         const float dt = timer.DeltaTime();
 
-        Engine::Key k = Engine::InputManager::GetKeyDown();
-        if (k != static_cast<Engine::Key>(-1))
-            LOG_INFO("Key pressed: {}", Engine::InputManager::KeyToString(k));
+        float camSpeed = 200.0f * dt;
+        float camX = camera.GetX();
+        float camY = camera.GetY();
 
-        if (Engine::InputManager::IsMouseButtonPressed(Engine::MouseButton::Left))
-            LOG_INFO("Left click at ({}, {})",
-                Engine::InputManager::GetMouseX(),
-                Engine::InputManager::GetMouseY());
+        if (Engine::InputManager::IsKeyDown(Engine::Key::W) || Engine::InputManager::IsKeyDown(Engine::Key::Up)) camY -= camSpeed;
+        if (Engine::InputManager::IsKeyDown(Engine::Key::S) || Engine::InputManager::IsKeyDown(Engine::Key::Down)) camY += camSpeed;
+        if (Engine::InputManager::IsKeyDown(Engine::Key::A) || Engine::InputManager::IsKeyDown(Engine::Key::Left)) camX -= camSpeed;
+        if (Engine::InputManager::IsKeyDown(Engine::Key::D) || Engine::InputManager::IsKeyDown(Engine::Key::Right)) camX += camSpeed;
 
-        if (Engine::GamepadManager::IsConnected(0))
-        {
-            if (Engine::GamepadManager::IsButtonPressed(0, Engine::GamepadButton::A))
-                LOG_INFO("Gamepad A pressed!");
+        float scroll = Engine::InputManager::GetMouseScrollDelta();
+        if (scroll != 0.0f)
+            camera.SetZoom(camera.GetZoom() + scroll * 0.1f);
 
-            if (Engine::GamepadManager::IsButtonPressed(0, Engine::GamepadButton::B))
-                Engine::GamepadManager::SetRumble(0, 0.5f, 0.5f);
-            if (Engine::GamepadManager::IsButtonReleased(0, Engine::GamepadButton::B))
-                Engine::GamepadManager::StopRumble(0);
-        }
+        camera.SetPosition(camX, camY);
 
         renderer.Resize(window.GetWidth(), window.GetHeight());
-        renderer.BeginFrame(0.13f, 0.13f, 0.14f);
+        renderer2D.OnResize(window.GetWidth(), window.GetHeight());
 
-        renderer2D.DrawTriangle();
+        // Update camera view size on resize
+        camera.SetViewSize
+        (
+            static_cast<float>(window.GetWidth()),
+            static_cast<float>(window.GetHeight())
+        );
+
+        renderer.BeginFrame(0.13f, 0.13f, 0.13f);
+
+        renderer2D.BeginScene(camera);
+
+        // Solid color quads
+        renderer2D.DrawQuad(100.0f, 100.0f, 300.0f, 200.0f, 1.0f, 0.3f, 0.0f);
+        renderer2D.DrawQuad(500.0f, 300.0f, 150.0f, 150.0f, 0.0f, 0.5f, 1.0f);
+
+        // Per-vertex color quad - gradient
+        renderer2D.DrawQuad(
+            Engine::Vertex2D{ 800.0f, 100.0f, 1.0f, 0.0f, 0.0f, 1.0f },  // TL red
+            Engine::Vertex2D{ 1000.0f, 100.0f, 0.0f, 1.0f, 0.0f, 1.0f }, // TR green
+            Engine::Vertex2D{ 1000.0f, 300.0f, 0.0f, 0.0f, 1.0f, 1.0f }, // BR blue
+            Engine::Vertex2D{ 800.0f, 300.0f, 1.0f, 1.0f, 0.0f, 1.0f }   // BL yellow
+        );
+
+        // Polygon
+        renderer2D.DrawPolygon(
+            Engine::Vertex2D{ 400.0f, 500.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+            Engine::Vertex2D{ 600.0f, 500.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+            Engine::Vertex2D{ 500.0f, 650.0f, 0.0f, 0.0f, 1.0f, 1.0f }
+        );
+
+        renderer2D.Flush();
 
         renderer.EndFrame();
-
-        static float titleTimer = 0.0f;
-        titleTimer += dt;
-        if (titleTimer >= 1.0f)
-        {
-            titleTimer = 0.0f;
-            SDL_SetWindowTitle(
-                window.GetSDLWindow(),
-                ("PowerEngine — " + std::to_string((int)timer.FPS()) + " FPS").c_str()
-            );
-        }
     }
 
     renderer2D.Shutdown();

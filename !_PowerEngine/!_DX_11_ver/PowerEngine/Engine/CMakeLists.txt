@@ -7,7 +7,8 @@ add_library(Engine STATIC
     Renderer/RenderContext.cpp
     Renderer/Shader.cpp
     Renderer/Renderer2D.cpp
-)
+    Renderer/Camera2D.cpp
+    Renderer/Texture2D.cpp)
 
 target_include_directories(Engine
     PUBLIC
@@ -23,6 +24,9 @@ target_link_libraries(Engine
         d3dcompiler.lib
         xinput.lib
 )
+
+find_package(Stb REQUIRED)
+target_include_directories(Engine PRIVATE ${Stb_INCLUDE_DIR})
 
 target_compile_definitions(Engine PUBLIC
     WIN32_LEAN_AND_MEAN
