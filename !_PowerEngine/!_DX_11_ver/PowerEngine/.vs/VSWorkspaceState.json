@@ -13,13 +13,8 @@
   },
   "ExpandedNodes": [
     "",
-    "\\Engine",
-    "\\Engine\\Core",
-    "\\Engine\\Input",
-    "\\Engine\\Platform",
-    "\\Engine\\Renderer",
-    "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
+  "SelectedNode": "\\Sandbox\\main.cpp",
   "PreviewInSolutionExplorer": false
 }

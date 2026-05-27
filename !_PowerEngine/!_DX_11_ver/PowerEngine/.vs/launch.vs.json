@@ -5,8 +5,8 @@
     {
       "type": "default",
       "project": "CMakeLists.txt",
-      "projectTarget": "PowerEngine.exe",
-      "name": "PowerEngine.exe"
+      "projectTarget": "Sandbox.exe (bin\\Sandbox.exe)",
+      "name": "Sandbox.exe (bin\\Sandbox.exe)"
     }
   ]
 }

@@ -1,3 +1,6 @@
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb_truetype.h>
+
 #include "Font.h"
 #include "Core/Logger.h"
 

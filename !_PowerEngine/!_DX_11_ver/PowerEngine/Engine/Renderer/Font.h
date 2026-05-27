@@ -3,9 +3,6 @@
 #include <string>
 #include <array>
 
-#define STB_TRUETYPE_IMPLEMENTATION
-#include <stb_truetype.h>
-
 namespace Engine
 {
     struct GlyphInfo

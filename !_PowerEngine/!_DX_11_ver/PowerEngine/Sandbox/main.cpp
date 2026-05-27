@@ -18,6 +18,10 @@
 
 int main()
 {
+	const std::string ASSETS = "../../../../../../!_ASSETS/";
+    const std::string FONTS = ASSETS + "!_fonts/";
+    const std::string TEXTURES = ASSETS + "!_test_materials/";
+
     SDL_SetMainReady();
 
     LOG_INFO("PowerEngine starting...");
@@ -48,7 +52,7 @@ int main()
     }
 
     Engine::Font font;
-    font.Load(renderer.GetDevice(), "montserrat_bold.ttf", 24.0f);
+    font.Load(renderer.GetDevice(), FONTS + "montserrat_bold.ttf", 24.0f);
 
     Engine::Camera2D camera;
     camera.SetViewSize(
@@ -103,18 +107,6 @@ int main()
 
         renderer2D.BeginScene(camera);
 
-        // FPS counter
-        renderer2D.DrawText(font,
-            "FPS: " + std::to_string((int)timer.FPS()),
-            10.0f, 10.0f,
-            1.0f, 1.0f, 1.0f);
-
-        // Multiline test
-        renderer2D.DrawText(font,
-            "PowerEngine v0.1\nPhase 3 - 2D Renderer",
-            10.0f, 40.0f,
-            0.8f, 0.8f, 0.8f);
-
         // Solid color quads
         renderer2D.DrawQuad(100.0f, 100.0f, 300.0f, 200.0f, 1.0f, 0.3f, 0.0f);
         renderer2D.DrawQuad(500.0f, 300.0f, 150.0f, 150.0f, 0.0f, 0.5f, 1.0f);
@@ -133,6 +125,15 @@ int main()
             Engine::Vertex2D{ 600.0f, 500.0f, 0.0f, 1.0f, 0.0f, 1.0f },
             Engine::Vertex2D{ 500.0f, 650.0f, 0.0f, 0.0f, 1.0f, 1.0f }
         );
+
+		// World-space quads
+        renderer2D.BeginScreenSpace();
+
+        // FPS counter
+        renderer2D.DrawText(font,
+            "FPS: " + std::to_string((int)timer.FPS()),
+            10.0f, 10.0f,
+            1.0f, 1.0f, 1.0f);
 
         renderer2D.Flush();
 

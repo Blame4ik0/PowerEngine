@@ -32,6 +32,7 @@ namespace Engine
         void Shutdown();
 
         void BeginScene(const Camera2D& camera);
+        void BeginScreenSpace();
         void Flush();
         void OnResize(int width, int height);
 

@@ -157,6 +157,20 @@ namespace Engine
         m_currentTexture = nullptr;
     }
 
+    void Renderer2D::BeginScreenSpace()
+    {
+        // Flush any pending world-space draws first
+        Flush();
+
+        // Plain orthographic — no camera transform at all
+        using namespace DirectX;
+        XMMATRIX proj = XMMatrixOrthographicOffCenterLH(
+            0.0f, static_cast<float>(m_context->GetWidth()),
+            static_cast<float>(m_context->GetHeight()), 0.0f,
+            0.0f, 1.0f);
+        XMStoreFloat4x4(&m_viewProjection, proj);
+    }
+
     void Renderer2D::DrawQuad(float x, float y, float w, float h,
         float r, float g, float b, float a)
     {
