@@ -6,10 +6,13 @@ add_library(Engine STATIC
     Platform/Window.cpp
     Renderer/RenderContext.cpp
     Renderer/Shader.cpp
-    Renderer/Renderer2D.cpp
-    Renderer/Camera2D.cpp
     Renderer/Texture2D.cpp
-    Renderer/Font.cpp
+    Renderer/2D/Renderer2D.cpp
+    Renderer/2D/Camera2D.cpp
+    Renderer/2D/Font.cpp
+    Renderer/3D/Renderer3D.cpp
+    Renderer/3D/Camera3D.cpp  
+    Renderer/3D/Mesh.cpp
 )
 
 target_include_directories(Engine

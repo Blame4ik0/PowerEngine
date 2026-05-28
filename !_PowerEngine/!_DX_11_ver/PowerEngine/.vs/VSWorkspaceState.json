@@ -13,8 +13,9 @@
   },
   "ExpandedNodes": [
     "",
+    "\\Engine",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\Sandbox\\main.cpp",
+  "SelectedNode": "\\Engine\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }
