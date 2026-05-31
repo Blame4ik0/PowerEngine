@@ -14,8 +14,10 @@
   "ExpandedNodes": [
     "",
     "\\Engine",
+    "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\3D",
+    "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\Engine\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }

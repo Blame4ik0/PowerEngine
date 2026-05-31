@@ -1,20 +1,71 @@
 #include "Mesh.h"
 #include "Core/Logger.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include <fstream>
 #include <sstream>
-#include <unordered_map>
-#include <algorithm>
 
 using namespace DirectX;
 
 namespace Engine
 {
+    // ---- Transform ----
+
+    void Mesh::SetPosition(float x, float y, float z)
+    {
+        m_position = { x, y, z };
+    }
+
+    void Mesh::SetRotation(float degX, float degY, float degZ)
+    {
+        m_rotation = { degX, degY, degZ };
+    }
+
+    void Mesh::SetScale(float x, float y, float z)
+    {
+        m_scale = { x, y, z };
+    }
+
+    void Mesh::SetScale(float uniform)
+    {
+        m_scale = { uniform, uniform, uniform };
+    }
+
+    void Mesh::Move(float dx, float dy, float dz)
+    {
+        m_position.x += dx;
+        m_position.y += dy;
+        m_position.z += dz;
+    }
+
+    void Mesh::Rotate(float degX, float degY, float degZ)
+    {
+        m_rotation.x += degX;
+        m_rotation.y += degY;
+        m_rotation.z += degZ;
+    }
+
+    XMMATRIX Mesh::GetWorldMatrix() const
+    {
+        // Convert degrees to radians
+        float rx = XMConvertToRadians(m_rotation.x);
+        float ry = XMConvertToRadians(m_rotation.y);
+        float rz = XMConvertToRadians(m_rotation.z);
+
+        return XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z)
+            * XMMatrixRotationRollPitchYaw(rx, ry, rz)
+            * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
+    }
+
+    // ---- Upload ----
+
     bool Mesh::Upload(ID3D11Device* device,
         const std::vector<Vertex3D>& vertices,
         const std::vector<uint32_t>& indices)
     {
-        // ---- Vertex buffer ----
         D3D11_BUFFER_DESC vbDesc{};
         vbDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex3D) * vertices.size());
         vbDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -27,7 +78,6 @@ namespace Engine
             m_vertexBuffer.GetAddressOf());
         if (FAILED(hr)) { LOG_ERROR("Mesh: CreateBuffer (vertex) failed."); return false; }
 
-        // ---- Index buffer ----
         D3D11_BUFFER_DESC ibDesc{};
         ibDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
         ibDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -45,104 +95,71 @@ namespace Engine
         return true;
     }
 
-    bool Mesh::LoadOBJ(ID3D11Device* device, const std::string& filepath)
+    // ---- Assimp loader ----
+
+    bool Mesh::Load(ID3D11Device* device, const std::string& filepath)
     {
-        std::ifstream file(filepath);
-        if (!file.is_open())
+        Assimp::Importer importer;
+
+        const aiScene* scene = importer.ReadFile(filepath,
+            aiProcess_Triangulate |  // convert quads to triangles
+            aiProcess_GenNormals |  // generate normals if missing
+            aiProcess_CalcTangentSpace |  // for normal mapping later
+            aiProcess_FlipUVs |  // DX uses top-left UV origin
+            aiProcess_JoinIdenticalVertices); // deduplicate vertices
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            LOG_ERROR("Mesh: could not open '{}'.", filepath);
+            LOG_ERROR("Mesh: Assimp error for '{}': {}",
+                filepath, importer.GetErrorString());
             return false;
         }
-
-        std::vector<XMFLOAT3> positions;
-        std::vector<XMFLOAT3> normals;
-        std::vector<XMFLOAT2> texcoords;
 
         std::vector<Vertex3D> vertices;
         std::vector<uint32_t> indices;
 
-        // Simple cache to avoid duplicate vertices
-        std::unordered_map<std::string, uint32_t> vertexCache;
-
-        std::string line;
-        while (std::getline(file, line))
+        // Process all meshes in the scene
+        for (unsigned int m = 0; m < scene->mNumMeshes; m++)
         {
-            std::istringstream ss(line);
-            std::string token;
-            ss >> token;
+            aiMesh* mesh = scene->mMeshes[m];
+            uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
 
-            if (token == "v")
+            for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
-                XMFLOAT3 pos;
-                ss >> pos.x >> pos.y >> pos.z;
-                positions.push_back(pos);
-            }
-            else if (token == "vn")
-            {
-                XMFLOAT3 normal;
-                ss >> normal.x >> normal.y >> normal.z;
-                normals.push_back(normal);
-            }
-            else if (token == "vt")
-            {
-                XMFLOAT2 uv;
-                ss >> uv.x >> uv.y;
-                uv.y = 1.0f - uv.y; // Flip V — OBJ is bottom-left origin, DX is top-left
-                texcoords.push_back(uv);
-            }
-            else if (token == "f")
-            {
-                // Face — can be triangle or quad
-                // Format: position/texcoord/normal (indices are 1-based in OBJ)
-                std::vector<uint32_t> faceIndices;
-                std::string vertStr;
+                Vertex3D vert{};
 
-                while (ss >> vertStr)
+                vert.Position = {
+                    mesh->mVertices[i].x,
+                    mesh->mVertices[i].y,
+                    mesh->mVertices[i].z
+                };
+
+                if (mesh->HasNormals())
                 {
-                    // Check cache first
-                    auto it = vertexCache.find(vertStr);
-                    if (it != vertexCache.end())
-                    {
-                        faceIndices.push_back(it->second);
-                        continue;
-                    }
-
-                    // Parse p/t/n or p//n or p
-                    int pi = 0, ti = 0, ni = 0;
-                    std::replace(vertStr.begin(), vertStr.end(), '/', ' ');
-                    std::istringstream vs(vertStr);
-                    vs >> pi;
-                    if (vs.peek() == ' ') { vs >> ti; }
-                    if (vs.peek() == ' ') { vs >> ni; }
-
-                    Vertex3D vert{};
-                    if (pi > 0 && pi <= (int)positions.size())
-                        vert.Position = positions[pi - 1];
-                    if (ti > 0 && ti <= (int)texcoords.size())
-                        vert.TexCoord = texcoords[ti - 1];
-                    if (ni > 0 && ni <= (int)normals.size())
-                        vert.Normal = normals[ni - 1];
-
-                    uint32_t idx = static_cast<uint32_t>(vertices.size());
-                    vertices.push_back(vert);
-                    vertexCache[vertStr] = idx;
-                    faceIndices.push_back(idx);
+                    vert.Normal = {
+                        mesh->mNormals[i].x,
+                        mesh->mNormals[i].y,
+                        mesh->mNormals[i].z
+                    };
                 }
 
-                // Triangulate — fan triangulation for quads
-                for (size_t i = 1; i + 1 < faceIndices.size(); i++)
+                if (mesh->mTextureCoords[0])
                 {
-                    indices.push_back(faceIndices[0]);
-                    indices.push_back(faceIndices[i]);
-                    indices.push_back(faceIndices[i + 1]);
+                    vert.TexCoord = {
+                        mesh->mTextureCoords[0][i].x,
+                        mesh->mTextureCoords[0][i].y
+                    };
                 }
-            }
-        }
 
-        if (vertices.empty())
-        {
-            LOG_ERROR("Mesh: no geometry found in '{}'.", filepath);
-            return false;
+                vertices.push_back(vert);
+            }
+
+            for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+            {
+                aiFace& face = mesh->mFaces[i];
+                for (unsigned int j = 0; j < face.mNumIndices; j++)
+                    indices.push_back(baseVertex + face.mIndices[j]);
+            }
         }
 
         LOG_INFO("Mesh loaded: '{}' ({} vertices, {} indices).",
@@ -151,57 +168,53 @@ namespace Engine
         return Upload(device, vertices, indices);
     }
 
+    // ---- Primitives ----
+
     bool Mesh::CreateCube(ID3D11Device* device, float s)
     {
         float h = s * 0.5f;
 
         std::vector<Vertex3D> vertices =
         {
-            // Front face  (normal  0, 0,-1)
-            {{ -h, -h, -h }, { 0, 0, -1 }, { 0, 1 }},
-            {{ -h,  h, -h }, { 0, 0, -1 }, { 0, 0 }},
-            {{  h,  h, -h }, { 0, 0, -1 }, { 1, 0 }},
-            {{  h, -h, -h }, { 0, 0, -1 }, { 1, 1 }},
+            {{ -h, -h, -h }, { 0,  0, -1 }, { 0, 1 }},
+            {{ -h,  h, -h }, { 0,  0, -1 }, { 0, 0 }},
+            {{  h,  h, -h }, { 0,  0, -1 }, { 1, 0 }},
+            {{  h, -h, -h }, { 0,  0, -1 }, { 1, 1 }},
 
-            // Back face   (normal  0, 0, 1)
-            {{  h, -h,  h }, { 0, 0,  1 }, { 0, 1 }},
-            {{  h,  h,  h }, { 0, 0,  1 }, { 0, 0 }},
-            {{ -h,  h,  h }, { 0, 0,  1 }, { 1, 0 }},
-            {{ -h, -h,  h }, { 0, 0,  1 }, { 1, 1 }},
+            {{  h, -h,  h }, { 0,  0,  1 }, { 0, 1 }},
+            {{  h,  h,  h }, { 0,  0,  1 }, { 0, 0 }},
+            {{ -h,  h,  h }, { 0,  0,  1 }, { 1, 0 }},
+            {{ -h, -h,  h }, { 0,  0,  1 }, { 1, 1 }},
 
-            // Left face   (normal -1, 0, 0)
-            {{ -h, -h,  h }, { -1, 0, 0 }, { 0, 1 }},
-            {{ -h,  h,  h }, { -1, 0, 0 }, { 0, 0 }},
-            {{ -h,  h, -h }, { -1, 0, 0 }, { 1, 0 }},
-            {{ -h, -h, -h }, { -1, 0, 0 }, { 1, 1 }},
+            {{ -h, -h,  h }, { -1, 0,  0 }, { 0, 1 }},
+            {{ -h,  h,  h }, { -1, 0,  0 }, { 0, 0 }},
+            {{ -h,  h, -h }, { -1, 0,  0 }, { 1, 0 }},
+            {{ -h, -h, -h }, { -1, 0,  0 }, { 1, 1 }},
 
-            // Right face  (normal  1, 0, 0)
-            {{  h, -h, -h }, { 1, 0, 0 }, { 0, 1 }},
-            {{  h,  h, -h }, { 1, 0, 0 }, { 0, 0 }},
-            {{  h,  h,  h }, { 1, 0, 0 }, { 1, 0 }},
-            {{  h, -h,  h }, { 1, 0, 0 }, { 1, 1 }},
+            {{  h, -h, -h }, {  1, 0,  0 }, { 0, 1 }},
+            {{  h,  h, -h }, {  1, 0,  0 }, { 0, 0 }},
+            {{  h,  h,  h }, {  1, 0,  0 }, { 1, 0 }},
+            {{  h, -h,  h }, {  1, 0,  0 }, { 1, 1 }},
 
-            // Top face    (normal  0, 1, 0)
-            {{ -h,  h, -h }, { 0, 1, 0 }, { 0, 1 }},
-            {{ -h,  h,  h }, { 0, 1, 0 }, { 0, 0 }},
-            {{  h,  h,  h }, { 0, 1, 0 }, { 1, 0 }},
-            {{  h,  h, -h }, { 0, 1, 0 }, { 1, 1 }},
+            {{ -h,  h, -h }, {  0, 1,  0 }, { 0, 1 }},
+            {{ -h,  h,  h }, {  0, 1,  0 }, { 0, 0 }},
+            {{  h,  h,  h }, {  0, 1,  0 }, { 1, 0 }},
+            {{  h,  h, -h }, {  0, 1,  0 }, { 1, 1 }},
 
-            // Bottom face (normal  0,-1, 0)
-            {{ -h, -h,  h }, { 0, -1, 0 }, { 0, 1 }},
-            {{ -h, -h, -h }, { 0, -1, 0 }, { 0, 0 }},
-            {{  h, -h, -h }, { 0, -1, 0 }, { 1, 0 }},
-            {{  h, -h,  h }, { 0, -1, 0 }, { 1, 1 }},
+            {{ -h, -h,  h }, {  0, -1, 0 }, { 0, 1 }},
+            {{ -h, -h, -h }, {  0, -1, 0 }, { 0, 0 }},
+            {{  h, -h, -h }, {  0, -1, 0 }, { 1, 0 }},
+            {{  h, -h,  h }, {  0, -1, 0 }, { 1, 1 }},
         };
 
         std::vector<uint32_t> indices;
         for (uint32_t i = 0; i < 6; i++)
         {
-            uint32_t base = i * 4;
-            indices.push_back(base);     indices.push_back(base + 1);
-            indices.push_back(base + 2);
-            indices.push_back(base);     indices.push_back(base + 2);
-            indices.push_back(base + 3);
+            uint32_t b = i * 4;
+            indices.push_back(b);     indices.push_back(b + 1);
+            indices.push_back(b + 2);
+            indices.push_back(b);     indices.push_back(b + 2);
+            indices.push_back(b + 3);
         }
 
         LOG_INFO("Mesh: cube created.");
@@ -224,6 +237,59 @@ namespace Engine
         std::vector<uint32_t> indices = { 0, 1, 2, 0, 2, 3 };
 
         LOG_INFO("Mesh: plane created.");
+        return Upload(device, vertices, indices);
+    }
+
+    bool Mesh::CreateSphere(ID3D11Device* device,
+        float radius, int slices, int stacks)
+    {
+        std::vector<Vertex3D> vertices;
+        std::vector<uint32_t> indices;
+
+        for (int i = 0; i <= stacks; i++)
+        {
+            float phi = XM_PI * i / stacks;
+            for (int j = 0; j <= slices; j++)
+            {
+                float theta = XM_2PI * j / slices;
+
+                Vertex3D v{};
+                v.Position = {
+                    radius * sinf(phi) * cosf(theta),
+                    radius * cosf(phi),
+                    radius * sinf(phi) * sinf(theta)
+                };
+                v.Normal = {
+                    sinf(phi) * cosf(theta),
+                    cosf(phi),
+                    sinf(phi) * sinf(theta)
+                };
+                v.TexCoord = {
+                    static_cast<float>(j) / slices,
+                    static_cast<float>(i) / stacks
+                };
+                vertices.push_back(v);
+            }
+        }
+
+        for (int i = 0; i < stacks; i++)
+        {
+            for (int j = 0; j < slices; j++)
+            {
+                uint32_t a = i * (slices + 1) + j;
+                uint32_t b = a + slices + 1;
+
+                indices.push_back(a);
+                indices.push_back(b);
+                indices.push_back(a + 1);
+
+                indices.push_back(b);
+                indices.push_back(b + 1);
+                indices.push_back(a + 1);
+            }
+        }
+
+        LOG_INFO("Mesh: sphere created ({} slices, {} stacks).", slices, stacks);
         return Upload(device, vertices, indices);
     }
 

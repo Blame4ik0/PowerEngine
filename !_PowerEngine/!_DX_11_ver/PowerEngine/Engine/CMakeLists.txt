@@ -13,6 +13,7 @@ add_library(Engine STATIC
     Renderer/3D/Renderer3D.cpp
     Renderer/3D/Camera3D.cpp  
     Renderer/3D/Mesh.cpp
+    Renderer/3D/Grid.cpp
 )
 
 target_include_directories(Engine
@@ -32,6 +33,9 @@ target_link_libraries(Engine
 
 find_package(Stb REQUIRED)
 target_include_directories(Engine PRIVATE ${Stb_INCLUDE_DIR})
+
+find_package(assimp CONFIG REQUIRED)
+target_link_libraries(Engine PUBLIC assimp::assimp)
 
 target_compile_definitions(Engine PUBLIC
     WIN32_LEAN_AND_MEAN
