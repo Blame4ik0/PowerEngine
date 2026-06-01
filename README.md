@@ -61,12 +61,12 @@ PowerEngine is a personal game engine project targeting high-realism graphics, a
 |-------|--------|--------|
 | 1 | Foundation — window, DX11 context, core loop | ✅ Done |
 | 2 | Input system — keyboard, mouse, gamepad | ✅ Done |
-| 3 | 2D renderer — sprites, batching, camera | 🔨 In progress |
-| 4 | 3D renderer — meshes, PBR, lighting, shadows | ⏳ Planned |
-| 5 | Scene system & Qt editor | ⏳ Planned |
-| 6 | Physics engine | ⏳ Planned |
-| 7 | Audio & animation | ⏳ Planned |
-| 8 | DX12, ray tracing, AI upscaling, scripting language | ⏳ Planned |
+| 3 | 2D renderer — sprites, batching, camera | ✅ Done |
+| 4 | 3D renderer — meshes, PBR, lighting, shadows | 🔨 In progress |
+| 5 | Scene system & Qt editor | ⏳ TBD |
+| 6 | Physics engine | ⏳ TBD |
+| 7 | Audio & animation | ⏳ TBD |
+| 8 | DX12, ray tracing, AI upscaling, scripting language | 👾 Planned |
 
 ---
 
