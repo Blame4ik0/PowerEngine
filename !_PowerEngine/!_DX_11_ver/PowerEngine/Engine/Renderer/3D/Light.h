@@ -1,5 +1,8 @@
 #pragma once
+#include <d3d11.h>
+#include <wrl/client.h>
 #include <DirectXMath.h>
+#include <string>
 
 namespace Engine
 {
@@ -21,10 +24,16 @@ namespace Engine
 
     struct Material
     {
+        // PBR base values — used when no texture is bound
         DirectX::XMFLOAT3 Albedo = { 1.0f, 1.0f, 1.0f };
         float             Metallic = 0.0f;
         float             Roughness = 0.5f;
         float             AmbientOcclusion = 1.0f;
-        DirectX::XMFLOAT2 _pad = { 0.0f, 0.0f };
+
+        // Texture paths — empty = not used
+        std::string AlbedoMap;
+        std::string NormalMap;
+        std::string SpecularMap;
+        std::string GlossinessMap;
     };
 }

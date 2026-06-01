@@ -29,6 +29,8 @@ int main()
     const std::string FONTS = ASSETS + "!_fonts/";
     const std::string TEXTURES = ASSETS + "!_test_materials/";
     const std::string MODELS = ASSETS + "!_3D_models/";
+    const std::string F1_TEX = MODELS + "formula_1/Substance_SpecGloss/Right_ones/";
+    const std::string CONTAINER = MODELS + "container/";
 
     SDL_SetMainReady();
 
@@ -83,6 +85,7 @@ int main()
     }
 
     float fov = 60.0f;
+    float lightIntensity = 3.0f;
 
     Engine::Camera3D camera3D;
     camera3D.SetPosition(0.0f, 2.0f, -5.0f);
@@ -95,17 +98,22 @@ int main()
     Engine::Mesh f1;
     bool f1Loaded = f1.Load(renderer.GetDevice(),
         MODELS + "formula_1/f1_mesh.fbx");
-    if (!f1Loaded)
-        LOG_ERROR("Failed to load the model.");
+    if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
 
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(),
         MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
-    if (!bulbLoaded)
-        LOG_ERROR("Failed to load bulb model.");
+    if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
+
+    Engine::Mesh container;
+    bool containerLoaded = container.Load(renderer.GetDevice(),
+        CONTAINER + "Container.fbx");
+    if (!containerLoaded) LOG_ERROR("Failed to load container model.");
+    container.SetPosition(5.0f, 0.0f, 0.0f);
+    container.SetScale(1.0f);
 
     // ---- Timer & Input ----
     Engine::Timer timer;
@@ -115,6 +123,9 @@ int main()
     Engine::GamepadManager::Init();
 
     bool showInfo = false;
+    bool showCrosshair = false;
+    bool showGrid = true;
+    bool showShadows = true;
 
     LOG_INFO("Entering main loop.");
 
@@ -130,6 +141,11 @@ int main()
         const float dt = timer.DeltaTime();
 
         // ---- Camera control ----
+        if (Engine::InputManager::IsMouseButtonPressed(Engine::MouseButton::Right))
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        if (Engine::InputManager::IsMouseButtonReleased(Engine::MouseButton::Right))
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+
         if (Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
         {
             float dx = Engine::InputManager::GetMouseDeltaX() * 0.003f;
@@ -148,33 +164,46 @@ int main()
         if (Engine::InputManager::IsKeyDown(Engine::Key::Space)) camera3D.Move(0, speed, 0);
         if (Engine::InputManager::IsKeyDown(Engine::Key::LCtrl)) camera3D.Move(0, -speed, 0);
 
-        // FOV with scroll when RMB held
         float scroll = Engine::InputManager::GetMouseScrollDelta();
         if (scroll != 0.0f &&
             Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
         {
             fov -= scroll * 2.0f;
-            if (fov < 10.0f)  fov = 10.0f;
-            if (fov > 120.0f) fov = 120.0f;
+            fov = std::max(10.0f, std::min(120.0f, fov));
+        }
+        else if (scroll != 0.0f &&
+            Engine::InputManager::IsKeyDown(Engine::Key::L))
+        {
+            lightIntensity += scroll * 0.5f;
+            lightIntensity = std::max(0.0f, lightIntensity);
         }
 
         if (Engine::InputManager::IsKeyPressed(Engine::Key::F3))
             showInfo = !showInfo;
-
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::C))
+            showCrosshair = !showCrosshair;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::G))
+            showGrid = !showGrid;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F4))
+        {
+            showShadows = !showShadows;
+            renderer3D.EnableShadows(showShadows);
+        }
         if (Engine::InputManager::IsKeyPressed(Engine::Key::R))
         {
             camera3D.SetPosition(0.0f, 2.0f, -5.0f);
             camera3D.SetRotation(0.0f, 0.0f, 0.0f);
             fov = 60.0f;
         }
+        if (Engine::InputManager::IsKeyDown(Engine::Key::R) &&
+            Engine::InputManager::IsKeyPressed(Engine::Key::L))
+            lightIntensity = 3.0f;
 
         // ---- Resize ----
         renderer.Resize(window.GetWidth(), window.GetHeight());
-
         camera2D.SetViewSize(
             static_cast<float>(window.GetWidth()),
             static_cast<float>(window.GetHeight()));
-
         camera3D.SetPerspective(fov,
             static_cast<float>(window.GetWidth()) /
             static_cast<float>(window.GetHeight()),
@@ -184,20 +213,20 @@ int main()
         Engine::DirectionalLight sun;
         sun.Direction = { 0.5f, -1.0f, 0.3f };
         sun.Color = { 1.0f, 0.95f, 0.9f };
-        sun.Intensity = 3.0f;
+        sun.Intensity = lightIntensity;
         renderer3D.SetDirectionalLight(sun);
 
         Engine::PointLight redLight;
         redLight.Position = { 3.0f, 2.0f, 0.0f };
         redLight.Color = { 1.0f, 0.2f, 0.1f };
         redLight.Intensity = 30.0f;
-        redLight.Radius = 1000.0f;
+        redLight.Radius = 10.0f;
 
         Engine::PointLight blueLight;
         blueLight.Position = { -3.0f, 2.0f, 0.0f };
         blueLight.Color = { 0.1f, 0.4f,  1.0f };
         blueLight.Intensity = 30.0f;
-        blueLight.Radius = 1000.0f;
+        blueLight.Radius = 10.0f;
 
         renderer3D.ClearPointLights();
         renderer3D.AddPointLight(redLight);
@@ -205,36 +234,62 @@ int main()
 
         // ---- Materials ----
         Engine::Material f1Mat;
-        f1Mat.Albedo = { 0.8f, 0.1f, 0.1f };
-        f1Mat.Metallic = 0.7f;
-        f1Mat.Roughness = 0.3f;
+        f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
+        f1Mat.Metallic = 0.0f;
+        f1Mat.Roughness = 0.5f;
+        f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
+        f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
+        f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
 
-        Engine::Material bulbMat;
-        bulbMat.Albedo = { 1.0f, 0.9f, 0.6f };
-        bulbMat.Metallic = 0.0f;
-        bulbMat.Roughness = 0.3f;
+        Engine::Material containerMat;
+        containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
+        containerMat.Metallic = 0.0f;
+        containerMat.Roughness = 0.5f;
+        containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
+        containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+
+        Engine::Material redBulbMat;
+        redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
+        redBulbMat.Metallic = 0.0f;
+        redBulbMat.Roughness = 0.3f;
+
+        Engine::Material blueBulbMat;
+        blueBulbMat.Albedo = { 0.1f, 0.4f, 1.0f };
+        blueBulbMat.Metallic = 0.0f;
+        blueBulbMat.Roughness = 0.3f;
 
         // ---- Render ----
         renderer.BeginFrame(0.13f, 0.13f, 0.13f);
 
         renderer3D.BeginScene(camera3D);
 
-        grid.Draw(camera3D);
-
+        // Shadow pass
+        renderer3D.BeginShadowPass();
         if (f1Loaded)
             renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+        if (containerLoaded)
+            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+        renderer3D.EndShadowPass();
 
+        // Main pass
+        if (showGrid)
+            grid.Draw(camera3D);
+
+        if (f1Loaded)
+            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+        if (containerLoaded)
+            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,
                 redLight.Position.y,
                 redLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), bulbMat);
+            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), redBulbMat);
 
             bulb.SetPosition(blueLight.Position.x,
                 blueLight.Position.y,
                 blueLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), bulbMat);
+            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), blueBulbMat);
         }
 
         // ---- 2D UI ----
@@ -246,10 +301,13 @@ int main()
             auto camPos = camera3D.GetPosition();
 
             int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
+            int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
-            int totalTris = f1Tris + bulbTris * 2; // two bulbs drawn
+            int totalTris = f1Tris + containerTris + bulbTris * 2;
             int totalVerts = totalTris * 3;
-            int meshCount = (f1Loaded ? 1 : 0) + (bulbLoaded ? 2 : 0);
+            int meshCount = (f1Loaded ? 1 : 0) +
+                (containerLoaded ? 1 : 0) +
+                (bulbLoaded ? 2 : 0);
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +
@@ -270,20 +328,35 @@ int main()
                 "  Meshes:    " + std::to_string(meshCount) + "\n" +
                 "  Vertices:  " + std::to_string(totalVerts) + "\n" +
                 "  Triangles: " + std::to_string(totalTris) + "\n" +
+                "  Shadows:   " + std::string(showShadows ? "on" : "off") + "\n" +
+                "  Sun intensity: " + std::to_string(lightIntensity).substr(0, 4) + "\n" +
                 "\n" +
                 "Controls\n" +
                 "  WASD           move\n" +
                 "  Space/Ctrl     up/down\n" +
                 "  RMB            look\n" +
                 "  LShift         sprint\n" +
-                "  RMB + Scroll   FOV\n" +
-                "  F3             toggle info\n" +
-                "  R             reset camera";
+                "  RMB+Scroll     FOV\n" +
+                "  L+Scroll       light intensity\n" +
+                "  R+L            reset light\n" +
+                "  R              reset camera\n" +
+                "  C              crosshair\n" +
+                "  G              grid\n" +
+                "  F4             shadows";
 
             renderer2D.DrawText(font, info, 10.0f, 10.0f, 1.0f, 1.0f, 1.0f);
-
-            renderer2D.DrawText(font, "+", (window.GetWidth() - font.GetFontSize() / 2) / 2, (window.GetHeight() - font.GetFontSize() / 2) / 2);
         }
+        else
+        {
+            renderer2D.DrawText(font, "F3  info", 10.0f, 10.0f,
+                0.6f, 0.6f, 0.6f);
+        }
+
+        if (showCrosshair)
+            renderer2D.DrawText(font, "+",
+                static_cast<float>(window.GetWidth()) / 2.0f - 4.0f,
+                static_cast<float>(window.GetHeight()) / 2.0f - 8.0f,
+                1.0f, 1.0f, 1.0f);
 
         renderer2D.Flush();
 

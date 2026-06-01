@@ -14,6 +14,7 @@ add_library(Engine STATIC
     Renderer/3D/Camera3D.cpp  
     Renderer/3D/Mesh.cpp
     Renderer/3D/Grid.cpp
+    Renderer/3D/ShadowMap.cpp
 )
 
 target_include_directories(Engine

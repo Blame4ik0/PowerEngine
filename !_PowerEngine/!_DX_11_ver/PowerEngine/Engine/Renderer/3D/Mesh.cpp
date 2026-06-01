@@ -97,16 +97,20 @@ namespace Engine
 
     // ---- Assimp loader ----
 
-    bool Mesh::Load(ID3D11Device* device, const std::string& filepath)
+    bool Mesh::Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode)
     {
         Assimp::Importer importer;
 
-        const aiScene* scene = importer.ReadFile(filepath,
-            aiProcess_Triangulate |  // convert quads to triangles
-            aiProcess_GenNormals |  // generate normals if missing
-            aiProcess_CalcTangentSpace |  // for normal mapping later
-            aiProcess_FlipUVs |  // DX uses top-left UV origin
-            aiProcess_JoinIdenticalVertices); // deduplicate vertices
+        unsigned int flags =
+            aiProcess_Triangulate |
+            aiProcess_GenNormals |
+            aiProcess_CalcTangentSpace |
+            aiProcess_JoinIdenticalVertices;
+
+        if (uvMode == UVMode::FlipV)
+            flags |= aiProcess_FlipUVs;
+
+        const aiScene* scene = importer.ReadFile(filepath, flags);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -145,10 +149,15 @@ namespace Engine
 
                 if (mesh->mTextureCoords[0])
                 {
-                    vert.TexCoord = {
-                        mesh->mTextureCoords[0][i].x,
-                        mesh->mTextureCoords[0][i].y
-                    };
+                    float u = mesh->mTextureCoords[0][i].x;
+                    float v = mesh->mTextureCoords[0][i].y;
+
+                    if (uvMode == UVMode::FlipU || uvMode == UVMode::FlipBoth)
+                        u = 1.0f - u;
+                    if (uvMode == UVMode::FlipBoth)
+                        v = 1.0f - v;
+
+                    vert.TexCoord = { u, v };
                 }
 
                 vertices.push_back(vert);

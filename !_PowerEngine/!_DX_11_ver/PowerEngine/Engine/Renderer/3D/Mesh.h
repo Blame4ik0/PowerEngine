@@ -16,6 +16,14 @@ namespace Engine
         DirectX::XMFLOAT2 TexCoord;
     };
 
+    enum class UVMode
+    {
+        Default,    // no flip
+        FlipV,      // Assimp aiProcess_FlipUVs
+        FlipU,      // manual U flip
+        FlipBoth    // flip both
+    };
+
     class Mesh
     {
     public:
@@ -26,7 +34,7 @@ namespace Engine
         Mesh& operator=(const Mesh&) = delete;
 
         // ---- Loading ----
-        bool Load(ID3D11Device* device, const std::string& filepath);
+        bool Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode = UVMode::FlipV);
         bool CreateCube(ID3D11Device* device, float size = 1.0f);
         bool CreatePlane(ID3D11Device* device, float width = 1.0f,
             float height = 1.0f);
