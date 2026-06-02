@@ -277,9 +277,9 @@ int main()
         renderer3D.BeginShadowPass();
 		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         renderer3D.EndShadowPass();
 
         // Main pass
@@ -287,9 +287,9 @@ int main()
             grid.Draw(camera3D);
         renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,

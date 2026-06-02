@@ -1,7 +1,3 @@
-// ============================================================
-//  Mesh.hlsl — PBR shading with shadows
-// ============================================================
-
 cbuffer PerObjectBuffer : register(b0)
 {
     row_major float4x4 World;
@@ -123,18 +119,14 @@ float3 CookTorrance(float3 N, float3 V, float3 L,
 {
     float3 H = normalize(V + L);
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
-
     float D = NDF_GGX(N, H, roughness);
     float G = Geometry_Smith(N, V, L, roughness);
     float3 F = Fresnel_Schlick(max(dot(H, V), 0.0f), F0);
-
     float NdotL = max(dot(N, L), 0.0f);
     float NdotV = max(dot(N, V), 0.0f);
     float3 specular = (D * G * F) / max(4.0f * NdotV * NdotL, 0.001f);
-
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - metallic);
     float3 diffuse = kD * albedo / PI;
-
     return (diffuse + specular) * lightColor * lightIntensity * NdotL;
 }
 
@@ -147,16 +139,18 @@ float SampleShadowPCF(float4 lightSpacePos)
     uv.y = -projCoords.y * 0.5f + 0.5f;
 
     if (uv.x < 0.0f || uv.x > 1.0f ||
-        uv.y < 0.0f || uv.y > 1.0f)
+        uv.y < 0.0f || uv.y > 1.0f ||
+        projCoords.z > 1.0f)
         return 1.0f;
 
     float depth = projCoords.z - ShadowBias;
-
     float shadow = 0.0f;
     float texelSize = 1.0f / 2048.0f;
 
+    [unroll]
     for (int x = -1; x <= 1; x++)
     {
+        [unroll]
         for (int y = -1; y <= 1; y++)
         {
             float2 offset = float2(x, y) * texelSize;
@@ -164,7 +158,6 @@ float SampleShadowPCF(float4 lightSpacePos)
                 g_shadowSampler, uv + offset, depth);
         }
     }
-
     return shadow / 9.0f;
 }
 
@@ -179,27 +172,21 @@ float4 PS_Main(VSOutput input) : SV_TARGET
 
     if (UseAlbedoMap)
         albedo = g_albedoMap.Sample(g_sampler, input.TexCoord).rgb;
-
     if (UseGlossinessMap)
-    {
-        float gloss = g_glossMap.Sample(g_sampler, input.TexCoord).r;
-        roughness = 1.0f - gloss;
-    }
-
+        roughness = 1.0f - g_glossMap.Sample(g_sampler, input.TexCoord).r;
     if (UseSpecularMap)
-    {
-        float spec = g_specularMap.Sample(g_sampler, input.TexCoord).r;
-        metallic = spec;
-    }
+        metallic = g_specularMap.Sample(g_sampler, input.TexCoord).r;
 
     float shadowFactor = SampleShadowPCF(input.LightSpacePos);
 
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
 
+    // Directional light — attenuated by shadow
     float3 L = normalize(-DirLightDirection);
     Lo += CookTorrance(N, V, L, albedo, metallic, roughness,
                        DirLightColor, DirLightIntensity) * shadowFactor;
 
+    // Point lights — no shadow
     for (int i = 0; i < PointLightCount; i++)
     {
         float3 lightPos = PointLightPositionRadius[i].xyz;
@@ -210,7 +197,6 @@ float4 PS_Main(VSOutput input) : SV_TARGET
         float3 toLight = lightPos - input.WorldPos;
         float distance = length(toLight);
         float3 Lp = normalize(toLight);
-
         float attenuation = 1.0f / (distance * distance);
         float radiusFactor = saturate(1.0f - (distance / lightRadius));
         attenuation *= radiusFactor * radiusFactor;

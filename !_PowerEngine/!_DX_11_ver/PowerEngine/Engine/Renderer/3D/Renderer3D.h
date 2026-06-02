@@ -29,12 +29,19 @@ namespace Engine
         bool Init(RenderContext* context, const std::wstring& shaderPath);
         void Shutdown();
 
+        // Call once per frame before any DrawMesh calls
         void BeginScene(const Camera3D& camera);
 
+        // Lighting
         void SetDirectionalLight(const DirectionalLight& light);
         void AddPointLight(const PointLight& light);
         void ClearPointLights();
 
+        // Shadow pass — call BeginShadowPass, DrawMesh for casters, EndShadowPass
+        void BeginShadowPass();
+        void EndShadowPass();
+
+        // Draw a mesh — respects current RenderPass
         void DrawMesh(const Mesh& mesh,
             const DirectX::XMMATRIX& worldMatrix,
             const Material& material = Material{});
@@ -45,16 +52,13 @@ namespace Engine
             float scaleX = 1, float scaleY = 1, float scaleZ = 1,
             const Material& material = Material{});
 
-        void BeginShadowPass();
-        void EndShadowPass();
-
         void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
-        ShadowMap& GetShadowMap() { return m_shadowMap; }
+        bool ShadowsEnabled()      const { return m_shadowsEnabled; }
 
         void OnResize(float aspectRatio);
 
     private:
-        void UpdateLightBuffer();
+        void       UpdateLightBuffer();
         Texture2D* GetOrLoadTexture(const std::string& path);
 
         RenderContext* m_context = nullptr;
@@ -82,7 +86,8 @@ namespace Engine
         RenderPass                      m_currentPass = RenderPass::Main;
         bool                            m_shadowsEnabled = true;
 
-        std::unordered_map<std::string, std::shared_ptr<Texture2D>> m_textureCache;
+        std::unordered_map<std::string,
+            std::shared_ptr<Texture2D>> m_textureCache;
         std::shared_ptr<Texture2D>      m_whiteTexture;
     };
 }

@@ -22,21 +22,27 @@ namespace Engine
             int resolution = 2048);
         void Shutdown();
 
+        // Call before rendering shadow casters
         void BeginShadowPass(ID3D11DeviceContext* ctx);
+
+        // Call after rendering shadow casters
+        // Restores the main render target
         void EndShadowPass(ID3D11DeviceContext* ctx,
             ID3D11RenderTargetView* mainRTV,
             ID3D11DepthStencilView* mainDSV,
-            D3D11_VIEWPORT mainViewport);
+            int viewportWidth, int viewportHeight);
 
+        // Computes light view-projection from a directional light
         void UpdateLightSpace(const DirectX::XMFLOAT3& lightDir,
             float sceneRadius = 20.0f);
 
-        void BindForSampling(ID3D11DeviceContext* ctx, int slot = 5);
+        // Binds the shadow map texture for sampling in the main pass
+        void BindForSampling(ID3D11DeviceContext* ctx,
+            int srvSlot = 5, int samplerSlot = 1);
 
         DirectX::XMMATRIX         GetLightSpaceMatrix() const { return m_lightSpaceMatrix; }
         ID3D11ShaderResourceView* GetSRV()              const { return m_srv.Get(); }
         Shader& GetShader() { return m_shader; }
-        int                       GetResolution()       const { return m_resolution; }
 
     private:
         Shader                           m_shader;
