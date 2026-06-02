@@ -112,8 +112,13 @@ int main()
     bool containerLoaded = container.Load(renderer.GetDevice(),
         CONTAINER + "Container.fbx");
     if (!containerLoaded) LOG_ERROR("Failed to load container model.");
-    container.SetPosition(5.0f, 0.0f, 0.0f);
-    container.SetScale(1.0f);
+    container.SetPosition(0.0f, 2.0f, 0.0f);
+	container.SetRotation(0.0f, 0.0f, 90.0f);
+    container.SetScale(0.01f);
+
+    Engine::Mesh floor;
+	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
+	floor.SetPosition(0.0f, 0.0f, 0.0f);
 
     // ---- Timer & Input ----
     Engine::Timer timer;
@@ -258,6 +263,11 @@ int main()
         blueBulbMat.Metallic = 0.0f;
         blueBulbMat.Roughness = 0.3f;
 
+		Engine::Material floorMat;
+		floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
+		floorMat.Metallic = 0.0f;
+		floorMat.Roughness = 0.0f;
+
         // ---- Render ----
         renderer.BeginFrame(0.13f, 0.13f, 0.13f);
 
@@ -265,20 +275,21 @@ int main()
 
         // Shadow pass
         renderer3D.BeginShadowPass();
+		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
             renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         renderer3D.EndShadowPass();
 
         // Main pass
         if (showGrid)
             grid.Draw(camera3D);
-
+        renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
-            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,
@@ -303,7 +314,8 @@ int main()
             int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
             int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
-            int totalTris = f1Tris + containerTris + bulbTris * 2;
+			int floorTris = floor.GetIndexCount() / 3;
+            int totalTris = f1Tris + containerTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
             int meshCount = (f1Loaded ? 1 : 0) +
                 (containerLoaded ? 1 : 0) +

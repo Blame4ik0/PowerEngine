@@ -19,6 +19,6 @@
     "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\Engine\\CMakeLists.txt",
+  "SelectedNode": "\\Engine\\Renderer\\RenderContext.h",
   "PreviewInSolutionExplorer": false
 }

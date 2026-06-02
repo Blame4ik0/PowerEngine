@@ -23,6 +23,8 @@ namespace Engine
         ID3D11Device* GetDevice()       const { return m_device.Get(); }
         ID3D11DeviceContext* GetDeviceContext() const { return m_deviceContext.Get(); }
         IDXGISwapChain* GetSwapChain()    const { return m_swapChain.Get(); }
+        ID3D11RenderTargetView* GetMainRTV() const { return m_renderTargetView.Get(); }
+        ID3D11DepthStencilView* GetMainDSV() const { return m_depthStencilView.Get(); }
         int                  GetWidth()        const { return m_width; }
         int                  GetHeight()       const { return m_height; }
 
