@@ -10,19 +10,5 @@
       "out\\build\\x86-release",
       "out\\install\\x86-release"
     ]
-  },
-  "ExpandedNodes": [
-    "",
-    "\\Engine",
-    "\\Engine\\Renderer",
-    "\\Engine\\Renderer\\3D",
-    "\\Engine\\Renderer\\Shaders",
-    "\\Sandbox"
-  ],
-<<<<<<< HEAD
-  "SelectedNode": "\\Engine\\Renderer\\3D\\Grid.cpp",
-=======
-  "SelectedNode": "\\Engine\\Renderer\\RenderContext.h",
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-  "PreviewInSolutionExplorer": false
+  }
 }
