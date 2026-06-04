@@ -68,7 +68,7 @@
               "RelativeDocumentMoniker": "Sandbox\\main.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp",
               "RelativeToolTip": "Sandbox\\main.cpp",
-              "ViewState": "AgIAAFcBAAAAAAAAAAAAwF8BAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAGQAAAAAAAAAAAAAwF8BAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-06-04T08:16:41.32Z",
               "EditorCaption": ""
@@ -83,8 +83,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Grid.h",
               "ViewState": "AgIAABAAAAAAAAAAAAAAwCsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-04T09:08:06.714Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T09:08:06.714Z"
             },
             {
               "$type": "Document",
@@ -96,8 +95,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Grid.cpp",
               "ViewState": "AgIAAIkAAAAAAAAAAAAAwKQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-04T09:00:06.234Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T09:00:06.234Z"
             },
             {
               "$type": "Document",
@@ -109,8 +107,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Light.h",
               "ViewState": "AgIAAAsAAAAAAAAAAAAAwCYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-04T08:45:23.846Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T08:45:23.846Z"
             },
             {
               "$type": "Document",
@@ -122,8 +119,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Mesh.cpp",
               "ViewState": "AgIAACABAAAAAAAAAAAAwDsBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-04T08:33:49.495Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T08:33:49.495Z"
             },
             {
               "$type": "Document",
@@ -135,8 +131,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Mesh.h",
               "ViewState": "AgIAADYAAAAAAAAAAAAAwFEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-04T08:38:06.842Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T08:38:06.842Z"
             },
             {
               "$type": "Document",
@@ -148,8 +143,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.cpp",
               "ViewState": "AgIAAM8BAAAAAAAAAAAAwOoBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-02T11:50:14.611Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-02T11:50:14.611Z"
             },
             {
               "$type": "Document",
@@ -161,8 +155,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.h",
               "ViewState": "AgIAAEMAAAAAAAAAAAAAwF4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-02T11:50:13.929Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-02T11:50:13.929Z"
             },
             {
               "$type": "Document",
@@ -174,8 +167,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\ShadowMap.cpp",
               "ViewState": "AgIAAGIAAAAAAAAAAAAAwH0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-02T11:49:51.021Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-02T11:49:51.021Z"
             },
             {
               "$type": "Document",
@@ -187,8 +179,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\ShadowMap.h",
               "ViewState": "AgIAABIAAAAAAAAAAAAAwC0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-02T11:49:50.076Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-02T11:49:50.076Z"
             },
             {
               "$type": "Document",
@@ -200,8 +191,7 @@
               "RelativeToolTip": "Engine\\Renderer\\Shaders\\Mesh.hlsl",
               "ViewState": "AgIAAJ0AAAAAAAAAAAAAwNAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-06-02T11:49:43.346Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-02T11:49:43.346Z"
             },
             {
               "$type": "Document",
