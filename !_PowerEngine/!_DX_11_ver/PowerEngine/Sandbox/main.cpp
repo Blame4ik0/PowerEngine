@@ -94,38 +94,68 @@ int main()
         static_cast<float>(window.GetHeight()),
         0.1f, 1000.0f);
 
-    // ---- Models ----
+    // ---- Stack Allocation Preserved ----
     Engine::Mesh f1;
-    bool f1Loaded = f1.Load(renderer.GetDevice(),
-        MODELS + "formula_1/f1_mesh.obj");
+    bool f1Loaded = f1.Load(renderer.GetDevice(), MODELS + "formula_1/f1_mesh.obj");
     if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
 
     Engine::Mesh porsche;
-	bool porscheLoaded = porsche.Load(renderer.GetDevice(),
-		MODELS + "porsche/porsche.glb");
-	if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
-	porsche.SetPosition(0.0f, 0.5f, 0.0f);
-	porsche.SetScale(0.01f);
+    bool porscheLoaded = porsche.Load(renderer.GetDevice(), MODELS + "porsche/porsche.glb");
+    if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
+    porsche.SetPosition(0.0f, 0.5f, 0.0f);
+    porsche.SetScale(0.01f);
 
     Engine::Mesh bulb;
-    bool bulbLoaded = bulb.Load(renderer.GetDevice(),
-        MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
+    bool bulbLoaded = bulb.Load(renderer.GetDevice(), MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
 
     Engine::Mesh container;
-    bool containerLoaded = container.Load(renderer.GetDevice(),
-        CONTAINER + "Container.fbx");
+    bool containerLoaded = container.Load(renderer.GetDevice(), CONTAINER + "Container.fbx");
     if (!containerLoaded) LOG_ERROR("Failed to load container model.");
     container.SetPosition(0.0f, 2.0f, 0.0f);
-	container.SetRotation(0.0f, 0.0f, 90.0f);
+    container.SetRotation(0.0f, 0.0f, 90.0f);
     container.SetScale(0.01f);
 
     Engine::Mesh floor;
-	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
-	floor.SetPosition(0.0f, 0.0f, 0.0f);
+    floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
+    floor.SetPosition(0.0f, 0.0f, 0.0f);
+
+    // ---- Materials Setup (Done once on the entities) ----
+    Engine::Material f1Mat;
+    f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
+    f1Mat.Metallic = 0.0f;
+    f1Mat.Roughness = 0.5f;
+    f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
+    f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
+    f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
+    if (f1Loaded) f1.SetMaterialAll(f1Mat);
+
+    Engine::Material containerMat;
+    containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
+    containerMat.Metallic = 0.0f;
+    containerMat.Roughness = 0.5f;
+    containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
+    containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+    if (containerLoaded) container.SetMaterialAll(containerMat);
+
+    Engine::Material redBulbMat;
+    redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
+    redBulbMat.Metallic = 0.0f;
+    redBulbMat.Roughness = 0.3f;
+
+    Engine::Material blueBulbMat;
+    blueBulbMat.Albedo = { 0.1f, 0.4f, 1.0f };
+    blueBulbMat.Metallic = 0.0f;
+    blueBulbMat.Roughness = 0.3f;
+
+    Engine::Material floorMat;
+    floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
+    floorMat.Metallic = 0.0f;
+    floorMat.Roughness = 0.0f;
+    floor.SetMaterialAll(floorMat);
 
     // ---- Timer & Input ----
     Engine::Timer timer;
@@ -165,8 +195,7 @@ int main()
             camera3D.Rotate(dy, dx, 0.0f);
         }
 
-        float multiplier = Engine::InputManager::IsKeyDown(Engine::Key::LShift)
-            ? 15.0f : 5.0f;
+        float multiplier = Engine::InputManager::IsKeyDown(Engine::Key::LShift) ? 15.0f : 5.0f;
         float speed = multiplier * dt;
 
         if (Engine::InputManager::IsKeyDown(Engine::Key::W))     camera3D.Move(0, 0, speed);
@@ -177,25 +206,20 @@ int main()
         if (Engine::InputManager::IsKeyDown(Engine::Key::LCtrl)) camera3D.Move(0, -speed, 0);
 
         float scroll = Engine::InputManager::GetMouseScrollDelta();
-        if (scroll != 0.0f &&
-            Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
+        if (scroll != 0.0f && Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
         {
             fov -= scroll * 2.0f;
             fov = std::max(10.0f, std::min(120.0f, fov));
         }
-        else if (scroll != 0.0f &&
-            Engine::InputManager::IsKeyDown(Engine::Key::L))
+        else if (scroll != 0.0f && Engine::InputManager::IsKeyDown(Engine::Key::L))
         {
             lightIntensity += scroll * 0.5f;
             lightIntensity = std::max(0.0f, lightIntensity);
         }
 
-        if (Engine::InputManager::IsKeyPressed(Engine::Key::F3))
-            showInfo = !showInfo;
-        if (Engine::InputManager::IsKeyPressed(Engine::Key::C))
-            showCrosshair = !showCrosshair;
-        if (Engine::InputManager::IsKeyPressed(Engine::Key::G))
-            showGrid = !showGrid;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F3))  showInfo = !showInfo;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::C))   showCrosshair = !showCrosshair;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::G))   showGrid = !showGrid;
         if (Engine::InputManager::IsKeyPressed(Engine::Key::F4))
         {
             showShadows = !showShadows;
@@ -207,8 +231,7 @@ int main()
             camera3D.SetRotation(0.0f, 0.0f, 0.0f);
             fov = 60.0f;
         }
-        if (Engine::InputManager::IsKeyDown(Engine::Key::R) &&
-            Engine::InputManager::IsKeyPressed(Engine::Key::L))
+        if (Engine::InputManager::IsKeyDown(Engine::Key::R) && Engine::InputManager::IsKeyPressed(Engine::Key::L))
             lightIntensity = 3.0f;
 
         // ---- Resize ----
@@ -244,70 +267,35 @@ int main()
         renderer3D.AddPointLight(redLight);
         renderer3D.AddPointLight(blueLight);
 
-        // ---- Materials ----
-        Engine::Material f1Mat;
-        f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
-        f1Mat.Metallic = 0.0f;
-        f1Mat.Roughness = 0.5f;
-        f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
-        f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
-        f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
-
-        Engine::Material containerMat;
-        containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
-        containerMat.Metallic = 0.0f;
-        containerMat.Roughness = 0.5f;
-        containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
-        containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
-
-        Engine::Material redBulbMat;
-        redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
-        redBulbMat.Metallic = 0.0f;
-        redBulbMat.Roughness = 0.3f;
-
-        Engine::Material blueBulbMat;
-        blueBulbMat.Albedo = { 0.1f, 0.4f, 1.0f };
-        blueBulbMat.Metallic = 0.0f;
-        blueBulbMat.Roughness = 0.3f;
-
-		Engine::Material floorMat;
-		floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
-		floorMat.Metallic = 0.0f;
-		floorMat.Roughness = 0.0f;
-
         // ---- Render ----
         renderer.BeginFrame(0.13f, 0.13f, 0.13f);
-
         renderer3D.BeginScene(camera3D);
 
         // Shadow pass
         renderer3D.BeginShadowPass();
-		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+        renderer3D.DrawMesh(floor, floor.GetWorldMatrix());
+        if (f1Loaded) renderer3D.DrawMesh(f1, f1.GetWorldMatrix());
+        if (porscheLoaded) renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix());
+        if (containerLoaded) renderer3D.DrawMesh(container, container.GetWorldMatrix());
         renderer3D.EndShadowPass();
 
         // Main pass
-        if (showGrid)
-            grid.Draw(camera3D);
-        renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+        if (showGrid) grid.Draw(camera3D);
+
+        renderer3D.DrawMesh(floor, floor.GetWorldMatrix());
+        if (f1Loaded) renderer3D.DrawMesh(f1, f1.GetWorldMatrix());
+        if (porscheLoaded) renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix());
+        if (containerLoaded) renderer3D.DrawMesh(container, container.GetWorldMatrix());
+
         if (bulbLoaded)
         {
-            bulb.SetPosition(redLight.Position.x,
-                redLight.Position.y,
-                redLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), redBulbMat);
+            bulb.SetPosition(redLight.Position.x, redLight.Position.y, redLight.Position.z);
+            bulb.SetMaterialAll(redBulbMat);
+            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix());
 
-            bulb.SetPosition(blueLight.Position.x,
-                blueLight.Position.y,
-                blueLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), blueBulbMat);
+            bulb.SetPosition(blueLight.Position.x, blueLight.Position.y, blueLight.Position.z);
+            bulb.SetMaterialAll(blueBulbMat);
+            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix());
         }
 
         // ---- 2D UI ----
@@ -319,28 +307,22 @@ int main()
             auto camPos = camera3D.GetPosition();
 
             int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
+            int porscheTris = porscheLoaded ? porsche.GetIndexCount() / 3 : 0;
             int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
-			int floorTris = floor.GetIndexCount() / 3;
-            int totalTris = f1Tris + containerTris + bulbTris * 2 + floorTris;
+            int floorTris = floor.GetIndexCount() / 3;
+            int totalTris = f1Tris + porscheTris + containerTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
-            int meshCount = (f1Loaded ? 1 : 0) +
-                (containerLoaded ? 1 : 0) +
-                (bulbLoaded ? 2 : 0);
+            int meshCount = (f1Loaded ? 1 : 0) + (porscheLoaded ? 1 : 0) + (containerLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +
-                "Frame time: " + std::to_string(
-                    timer.DeltaTime() * 1000.0f).substr(0, 5) + " ms\n" +
+                "Frame time: " + std::to_string(timer.DeltaTime() * 1000.0f).substr(0, 5) + " ms\n" +
                 "\n" +
                 "Camera\n" +
-                "  Pos:   (" + std::to_string((int)camPos.x) + ", "
-                + std::to_string((int)camPos.y) + ", "
-                + std::to_string((int)camPos.z) + ")\n" +
-                "  Pitch: " + std::to_string(
-                    (int)DirectX::XMConvertToDegrees(camera3D.GetPitch())) + " deg\n" +
-                "  Yaw:   " + std::to_string(
-                    (int)DirectX::XMConvertToDegrees(camera3D.GetYaw())) + " deg\n" +
+                "  Pos:   (" + std::to_string((int)camPos.x) + ", " + std::to_string((int)camPos.y) + ", " + std::to_string((int)camPos.z) + ")\n" +
+                "  Pitch: " + std::to_string((int)DirectX::XMConvertToDegrees(camera3D.GetPitch())) + " deg\n" +
+                "  Yaw:   " + std::to_string((int)DirectX::XMConvertToDegrees(camera3D.GetYaw())) + " deg\n" +
                 "  FOV:   " + std::to_string((int)fov) + " deg\n" +
                 "\n" +
                 "Scene\n" +
@@ -367,8 +349,7 @@ int main()
         }
         else
         {
-            renderer2D.DrawText(font, "F3  info", 10.0f, 10.0f,
-                0.6f, 0.6f, 0.6f);
+            renderer2D.DrawText(font, "F3  info", 10.0f, 10.0f, 0.6f, 0.6f, 0.6f);
         }
 
         if (showCrosshair)
@@ -378,7 +359,6 @@ int main()
                 1.0f, 1.0f, 1.0f);
 
         renderer2D.Flush();
-
         renderer.EndFrame();
     }
 

@@ -30,29 +30,22 @@ namespace Engine
         bool Init(RenderContext* context, const std::wstring& shaderPath);
         void Shutdown();
 
-        // Call once per frame before any DrawMesh calls
         void BeginScene(const Camera3D& camera);
 
-        // Lighting
         void SetDirectionalLight(const DirectionalLight& light);
         void AddPointLight(const PointLight& light);
         void ClearPointLights();
 
-        // Shadow pass — call BeginShadowPass, DrawMesh for casters, EndShadowPass
         void BeginShadowPass();
         void EndShadowPass();
         void DebugDrawShadowMap(Renderer2D& renderer2D);
 
-        // Draw a mesh — respects current RenderPass
-        void DrawMesh(const Mesh& mesh,
-            const DirectX::XMMATRIX& worldMatrix,
-            const Material& material = Material{});
+        void DrawMesh(const Mesh& mesh, const DirectX::XMMATRIX& worldMatrix);
 
         void DrawMesh(const Mesh& mesh,
             float x, float y, float z,
             float rotX = 0, float rotY = 0, float rotZ = 0,
-            float scaleX = 1, float scaleY = 1, float scaleZ = 1,
-            const Material& material = Material{});
+            float scaleX = 1, float scaleY = 1, float scaleZ = 1);
 
         void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
         bool ShadowsEnabled()      const { return m_shadowsEnabled; }
@@ -77,9 +70,10 @@ namespace Engine
         ComPtr<ID3D11DepthStencilState> m_depthStencilState;
         ComPtr<ID3D11SamplerState>      m_sampler;
 
-        DirectX::XMMATRIX               m_view;
-        DirectX::XMMATRIX               m_projection;
-        DirectX::XMFLOAT3               m_cameraPosition;
+        // Clean initializations to solve type.6 errors
+        DirectX::XMMATRIX               m_view = DirectX::XMMatrixIdentity();
+        DirectX::XMMATRIX               m_projection = DirectX::XMMatrixIdentity();
+        DirectX::XMFLOAT3               m_cameraPosition = { 0.0f, 0.0f, 0.0f };
 
         DirectionalLight                m_dirLight;
         std::vector<PointLight>         m_pointLights;
@@ -88,8 +82,7 @@ namespace Engine
         RenderPass                      m_currentPass = RenderPass::Main;
         bool                            m_shadowsEnabled = true;
 
-        std::unordered_map<std::string,
-            std::shared_ptr<Texture2D>> m_textureCache;
+        std::unordered_map<std::string, std::shared_ptr<Texture2D>> m_textureCache;
         std::shared_ptr<Texture2D>      m_whiteTexture;
     };
 }

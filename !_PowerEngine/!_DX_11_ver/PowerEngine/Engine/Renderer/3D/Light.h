@@ -3,9 +3,12 @@
 #include <wrl/client.h>
 #include <DirectXMath.h>
 #include <string>
+#include <memory> // Fixed: Required for std::shared_ptr
 
 namespace Engine
 {
+    class Texture2D; // Fixed: Forward declaration to resolve undeclared identifier
+
     struct DirectionalLight
     {
         DirectX::XMFLOAT3 Direction = { 0.0f, -1.0f, 0.5f };
@@ -24,16 +27,19 @@ namespace Engine
 
     struct Material
     {
-        // PBR base values — used when no texture is bound
         DirectX::XMFLOAT3 Albedo = { 1.0f, 1.0f, 1.0f };
-        float             Metallic = 0.0f;
-        float             Roughness = 0.5f;
-        float             AmbientOcclusion = 1.0f;
+        float Metallic = 0.0f;
+        float Roughness = 0.5f;
+        float AmbientOcclusion = 1.0f;
 
-        // Texture paths — empty = not used
+        // Manual texture assignment (highest priority)
         std::string AlbedoMap;
         std::string NormalMap;
         std::string SpecularMap;
         std::string GlossinessMap;
+
+        // For future: embedded texture support
+        std::shared_ptr<Texture2D> AlbedoTexture = nullptr;
+        std::shared_ptr<Texture2D> NormalTexture = nullptr;
     };
 }
