@@ -10,5 +10,13 @@
       "out\\build\\x86-release",
       "out\\install\\x86-release"
     ]
-  }
+  },
+  "ExpandedNodes": [
+    "",
+    "\\Engine",
+    "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\3D"
+  ],
+  "SelectedNode": "\\Engine\\Renderer\\3D\\Grid.h",
+  "PreviewInSolutionExplorer": false
 }

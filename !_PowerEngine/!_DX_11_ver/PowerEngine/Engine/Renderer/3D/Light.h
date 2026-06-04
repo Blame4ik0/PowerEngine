@@ -24,19 +24,16 @@ namespace Engine
 
     struct Material
     {
+        // PBR base values — used when no texture is bound
         DirectX::XMFLOAT3 Albedo = { 1.0f, 1.0f, 1.0f };
-        float Metallic = 0.0f;
-        float Roughness = 0.5f;
-        float AmbientOcclusion = 1.0f;
+        float             Metallic = 0.0f;
+        float             Roughness = 0.5f;
+        float             AmbientOcclusion = 1.0f;
 
-        // Manual texture assignment (highest priority)
+        // Texture paths — empty = not used
         std::string AlbedoMap;
         std::string NormalMap;
         std::string SpecularMap;
         std::string GlossinessMap;
-
-        // For future: embedded texture support
-        std::shared_ptr<Texture2D> AlbedoTexture = nullptr;
-        std::shared_ptr<Texture2D> NormalTexture = nullptr;
     };
 }

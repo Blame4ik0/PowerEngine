@@ -4,12 +4,11 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
-#include <memory>
-#include "Light.h"
-#include "Renderer/Texture2D.h"
 
 namespace Engine
 {
+    using Microsoft::WRL::ComPtr;
+
     struct Vertex3D
     {
         DirectX::XMFLOAT3 Position;
@@ -19,10 +18,10 @@ namespace Engine
 
     enum class UVMode
     {
-        Default,
-        FlipV,
-        FlipU,
-        FlipBoth
+        Default,    // no flip
+        FlipV,      // Assimp aiProcess_FlipUVs
+        FlipU,      // manual U flip
+        FlipBoth    // flip both
     };
 
     class Mesh
@@ -34,47 +33,50 @@ namespace Engine
         Mesh(const Mesh&) = delete;
         Mesh& operator=(const Mesh&) = delete;
 
+        // ---- Loading ----
         bool Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode = UVMode::FlipV);
+        bool CreateCube(ID3D11Device* device, float size = 1.0f);
+        bool CreatePlane(ID3D11Device* device, float width = 1.0f,
+            float height = 1.0f);
+        bool CreateSphere(ID3D11Device* device, float radius = 1.0f,
+            int slices = 16, int stacks = 16);
 
-        // Granular submesh controls for Renderer3D
-        void DrawSubMesh(ID3D11DeviceContext* ctx, size_t index) const;
-        const Material& GetMaterial(size_t subMeshIndex) const;
-        uint32_t GetIndexCount() const;
-        void CreatePlane(ID3D11Device* device, float width, float depth);
-
-        // Manual material control
-        void SetMaterial(int subMeshIndex, const Material& material);
-        void SetMaterialAll(const Material& material);
-
-        bool IsLoaded() const { return !m_subMeshes.empty(); }
-        size_t GetSubMeshCount() const { return m_subMeshes.size(); }
-
-        // Transform
+        // ---- Transform ----
         void SetPosition(float x, float y, float z);
-        void SetRotation(float degX, float degY, float degZ);
+        void SetRotation(float degreesX, float degreesY, float degreesZ);
         void SetScale(float x, float y, float z);
         void SetScale(float uniform);
 
+        void Move(float dx, float dy, float dz);
+        void Rotate(float degreesX, float degreesY, float degreesZ);
+
+        DirectX::XMFLOAT3 GetPosition() const { return m_position; }
+        DirectX::XMFLOAT3 GetRotation() const { return m_rotation; }
+        DirectX::XMFLOAT3 GetScale()    const { return m_scale; }
+
+        // Returns the combined world matrix
         DirectX::XMMATRIX GetWorldMatrix() const;
 
-    private:
-        struct SubMesh
-        {
-            Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
-            Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-            Material material;
-            uint32_t indexCount = 0;
-        };
+        // ---- Drawing ----
+        void Draw(ID3D11DeviceContext* ctx) const;
 
-        bool UploadSubMesh(ID3D11Device* device, SubMesh& subMesh,
+        bool IsLoaded()      const { return m_loaded; }
+        int  GetIndexCount() const { return m_indexCount; }
+
+    private:
+        bool Upload(ID3D11Device* device,
             const std::vector<Vertex3D>& vertices,
             const std::vector<uint32_t>& indices);
 
-        std::vector<SubMesh> m_subMeshes;
+        ComPtr<ID3D11Buffer> m_vertexBuffer;
+        ComPtr<ID3D11Buffer> m_indexBuffer;
+
+        int  m_indexCount = 0;
+        bool m_loaded = false;
 
         // Transform
         DirectX::XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
-        DirectX::XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f };
+        DirectX::XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f }; // degrees
         DirectX::XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f };
     };
 }
