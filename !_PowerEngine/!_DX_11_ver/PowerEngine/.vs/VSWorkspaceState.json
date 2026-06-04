@@ -17,9 +17,12 @@
     "\\Engine\\Renderer",
     "\\Engine\\Renderer\\3D",
     "\\Engine\\Renderer\\Shaders",
-    "\\out",
     "\\Sandbox"
   ],
+<<<<<<< HEAD
   "SelectedNode": "\\Engine\\Renderer\\3D\\Grid.cpp",
+=======
+  "SelectedNode": "\\Engine\\Renderer\\RenderContext.h",
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
   "PreviewInSolutionExplorer": false
 }

@@ -1,4 +1,4 @@
-add_executable(Sandbox "main.cpp")
+add_executable(Sandbox main.cpp)
 
 target_link_libraries(Sandbox PRIVATE Engine)
 

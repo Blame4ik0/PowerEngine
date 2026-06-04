@@ -130,19 +130,22 @@ float3 CookTorrance(float3 N, float3 V, float3 L,
     return (diffuse + specular) * lightColor * lightIntensity * NdotL;
 }
 
-float SampleShadowPCF(float4 lightSpacePos, float3 normal, float3 lightDir)
+float SampleShadowPCF(float4 lightSpacePos)
 {
     float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-    float2 uv = float2(projCoords.x * 0.5f + 0.5f, -projCoords.y * 0.5f + 0.5f);
 
-    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f)
+    float2 uv;
+    uv.x = projCoords.x * 0.5f + 0.5f;
+    uv.y = -projCoords.y * 0.5f + 0.5f;
+
+    if (uv.x < 0.0f || uv.x > 1.0f ||
+        uv.y < 0.0f || uv.y > 1.0f ||
+        projCoords.z > 1.0f)
         return 1.0f;
 
-    float currentDepth = projCoords.z;
-    float bias = max(ShadowBias * (1.0f - dot(normal, lightDir)), ShadowBias * 0.5f);
-
+    float depth = projCoords.z - ShadowBias;
     float shadow = 0.0f;
-    float texelSize = 1.0f / 4096.0f;
+    float texelSize = 1.0f / 2048.0f;
 
     [unroll]
     for (int x = -1; x <= 1; x++)
@@ -151,7 +154,8 @@ float SampleShadowPCF(float4 lightSpacePos, float3 normal, float3 lightDir)
         for (int y = -1; y <= 1; y++)
         {
             float2 offset = float2(x, y) * texelSize;
-            shadow += g_shadowMap.SampleCmpLevelZero(g_shadowSampler, uv + offset, currentDepth - bias);
+            shadow += g_shadowMap.SampleCmpLevelZero(
+                g_shadowSampler, uv + offset, depth);
         }
     }
     return shadow / 9.0f;
@@ -173,37 +177,38 @@ float4 PS_Main(VSOutput input) : SV_TARGET
     if (UseSpecularMap)
         metallic = g_specularMap.Sample(g_sampler, input.TexCoord).r;
 
+    float shadowFactor = SampleShadowPCF(input.LightSpacePos);
+
+    float3 Lo = float3(0.0f, 0.0f, 0.0f);
+
+    // Directional light — attenuated by shadow
     float3 L = normalize(-DirLightDirection);
-    float shadowFactor = SampleShadowPCF(input.LightSpacePos, N, L);
+    Lo += CookTorrance(N, V, L, albedo, metallic, roughness,
+                       DirLightColor, DirLightIntensity) * shadowFactor;
 
-    float3 Lo = 0.0f;
-
-    // Directional Light
-    Lo += CookTorrance(N, V, L, albedo, metallic, roughness, DirLightColor, DirLightIntensity) * shadowFactor;
-
-    // Point Lights
+    // Point lights — no shadow
     for (int i = 0; i < PointLightCount; i++)
     {
         float3 lightPos = PointLightPositionRadius[i].xyz;
-        float radius = PointLightPositionRadius[i].w;
-        float3 color = PointLightColorIntensity[i].xyz;
-        float intensity = PointLightColorIntensity[i].w;
+        float lightRadius = PointLightPositionRadius[i].w;
+        float3 lightColor = PointLightColorIntensity[i].xyz;
+        float lightIntens = PointLightColorIntensity[i].w;
 
         float3 toLight = lightPos - input.WorldPos;
-        float dist = length(toLight);
+        float distance = length(toLight);
         float3 Lp = normalize(toLight);
-        float att = 1.0f / (dist * dist + 0.001f);
-        float radiusAtt = saturate(1.0f - dist / radius);
-        att *= radiusAtt * radiusAtt;
+        float attenuation = 1.0f / (distance * distance);
+        float radiusFactor = saturate(1.0f - (distance / lightRadius));
+        attenuation *= radiusFactor * radiusFactor;
 
-        Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness, color, intensity * att);
+        Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness,
+                           lightColor, lightIntens * attenuation);
     }
 
-    float3 ambient = 0.08f * albedo * AmbientOcclusion;
+    float3 ambient = float3(0.03f, 0.03f, 0.03f) * albedo * AmbientOcclusion;
     float3 color = ambient + Lo;
-
-    color = color / (color + 1.0f);
-    color = pow(color, 1.0f / 2.2f);
+    color = color / (color + float3(1.0f, 1.0f, 1.0f));
+    color = pow(color, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
 
     return float4(color, 1.0f);
 }
