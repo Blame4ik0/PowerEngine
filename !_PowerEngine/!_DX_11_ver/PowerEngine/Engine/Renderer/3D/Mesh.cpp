@@ -56,8 +56,6 @@ namespace Engine
         return true;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     // ====================== MATERIAL PARSING ======================
     Material ParseMaterial(ID3D11Device* device, aiMaterial* aiMat, const aiScene* scene, const std::string& directory)
     {
@@ -100,58 +98,21 @@ namespace Engine
     }
 
     // ====================== LOAD ======================
-=======
-    // ---- Assimp loader ----
-
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
-    // ---- Assimp loader ----
-
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
     bool Mesh::Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode)
     {
         Assimp::Importer importer;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
         unsigned int flags = aiProcess_Triangulate |
             aiProcess_GenSmoothNormals |
             aiProcess_CalcTangentSpace |
             aiProcess_JoinIdenticalVertices |
             aiProcess_FlipUVs;
-=======
-        unsigned int flags =
-            aiProcess_Triangulate |
-            aiProcess_GenNormals |
-            aiProcess_CalcTangentSpace |
-=======
-        unsigned int flags =
-            aiProcess_Triangulate |
-            aiProcess_GenNormals |
-            aiProcess_CalcTangentSpace |
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-            aiProcess_JoinIdenticalVertices;
-
-        if (uvMode == UVMode::FlipV)
-            flags |= aiProcess_FlipUVs;
-<<<<<<< HEAD
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
 
         const aiScene* scene = importer.ReadFile(filepath, flags);
 
         if (!scene || !scene->mRootNode)
         {
-<<<<<<< HEAD
-<<<<<<< HEAD
             LOG_ERROR("Failed to load {}: {}", filepath, importer.GetErrorString());
-=======
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-            LOG_ERROR("Mesh: Assimp error for '{}': {}",
-                filepath, importer.GetErrorString());
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
             return false;
         }
 
@@ -159,64 +120,10 @@ namespace Engine
         size_t lastSlash = filepath.find_last_of("/\\");
         if (lastSlash != std::string::npos)
         {
-<<<<<<< HEAD
             directory = filepath.substr(0, lastSlash + 1);
         }
 
         m_subMeshes.clear();
-=======
-            aiMesh* mesh = scene->mMeshes[m];
-            uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
-
-            for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-            {
-                Vertex3D vert{};
-
-                vert.Position = {
-                    mesh->mVertices[i].x,
-                    mesh->mVertices[i].y,
-                    mesh->mVertices[i].z
-                };
-
-                if (mesh->HasNormals())
-                {
-                    vert.Normal = {
-                        mesh->mNormals[i].x,
-                        mesh->mNormals[i].y,
-                        mesh->mNormals[i].z
-                    };
-                }
-
-                if (mesh->mTextureCoords[0])
-                {
-                    float u = mesh->mTextureCoords[0][i].x;
-                    float v = mesh->mTextureCoords[0][i].y;
-
-                    if (uvMode == UVMode::FlipU || uvMode == UVMode::FlipBoth)
-                        u = 1.0f - u;
-                    if (uvMode == UVMode::FlipBoth)
-                        v = 1.0f - v;
-
-                    vert.TexCoord = { u, v };
-                }
-
-                vertices.push_back(vert);
-            }
-
-            for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-            {
-                aiFace& face = mesh->mFaces[i];
-                for (unsigned int j = 0; j < face.mNumIndices; j++)
-                    indices.push_back(baseVertex + face.mIndices[j]);
-            }
-        }
-
-        LOG_INFO("Mesh loaded: '{}' ({} vertices, {} indices).",
-            filepath, vertices.size(), indices.size());
-<<<<<<< HEAD
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
 
         for (unsigned int m = 0; m < scene->mNumMeshes; ++m)
         {

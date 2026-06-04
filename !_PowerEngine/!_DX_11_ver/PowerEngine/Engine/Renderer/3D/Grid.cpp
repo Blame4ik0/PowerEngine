@@ -104,9 +104,9 @@ namespace Engine
         hr = device->CreateDepthStencilState(&dsDesc, m_depthStencilState.GetAddressOf());
         if (FAILED(hr)) { LOG_ERROR("Grid: CreateDepthStencilState failed."); return false; }
 
-        // Fixed: Commented out because CreateSphere is not a member of Engine::Mesh
-        // m_originSphere.CreateSphere(device, 0.08f, 12, 12);
-        // m_originSphere.SetPosition(0.0f, 0.0f, 0.0f);
+        // Origin sphere
+        m_originSphere.CreateSphere(device, 0.08f, 12, 12);
+        m_originSphere.SetPosition(0.0f, 0.0f, 0.0f);
 
         LOG_INFO("Grid initialized ({}x{}, spacing {}).", size * 2, size * 2, spacing);
         return true;
@@ -140,8 +140,7 @@ namespace Engine
 
         ctx->Draw(m_vertexCount, 0);
 
-        // Fixed: Commented out because Engine::Renderer3D::DrawMesh has no overload taking 3 arguments
-        /*
+        // Draw origin sphere
         if (m_renderer3D)
         {
             Material white;
@@ -151,7 +150,6 @@ namespace Engine
             m_renderer3D->DrawMesh(m_originSphere,
                 m_originSphere.GetWorldMatrix(), white);
         }
-        */
     }
 
     void Grid::Shutdown()
@@ -164,4 +162,3 @@ namespace Engine
         LOG_INFO("Grid shut down.");
     }
 }
-// Fixed: Extraneous duplicate brace removed from here

@@ -96,31 +96,17 @@ int main()
 
     // ---- Stack Allocation Preserved ----
     Engine::Mesh f1;
-<<<<<<< HEAD
     bool f1Loaded = f1.Load(renderer.GetDevice(), MODELS + "formula_1/f1_mesh.obj");
-=======
-    bool f1Loaded = f1.Load(renderer.GetDevice(),
-        MODELS + "formula_1/f1_mesh.fbx");
-<<<<<<< HEAD
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
     if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     Engine::Mesh porsche;
     bool porscheLoaded = porsche.Load(renderer.GetDevice(), MODELS + "porsche/porsche.glb");
     if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
     porsche.SetPosition(0.0f, 0.5f, 0.0f);
     porsche.SetScale(0.01f);
 
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(), MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
@@ -268,13 +254,13 @@ int main()
         Engine::PointLight redLight;
         redLight.Position = { 3.0f, 2.0f, 0.0f };
         redLight.Color = { 1.0f, 0.2f, 0.1f };
-        redLight.Intensity = 30.0f;
+        redLight.Intensity = 30.0f * lightIntensity;
         redLight.Radius = 10.0f;
 
         Engine::PointLight blueLight;
         blueLight.Position = { -3.0f, 2.0f, 0.0f };
         blueLight.Color = { 0.1f, 0.4f,  1.0f };
-        blueLight.Intensity = 30.0f;
+        blueLight.Intensity = 30.0f * lightIntensity;
         blueLight.Radius = 10.0f;
 
         renderer3D.ClearPointLights();
@@ -287,7 +273,6 @@ int main()
 
         // Shadow pass
         renderer3D.BeginShadowPass();
-<<<<<<< HEAD
         renderer3D.DrawMesh(floor, floor.GetWorldMatrix());
         if (f1Loaded) renderer3D.DrawMesh(f1, f1.GetWorldMatrix());
         if (porscheLoaded) renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix());
@@ -302,26 +287,6 @@ int main()
         if (porscheLoaded) renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix());
         if (containerLoaded) renderer3D.DrawMesh(container, container.GetWorldMatrix());
 
-=======
-		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-        renderer3D.EndShadowPass();
-
-        // Main pass
-        if (showGrid)
-            grid.Draw(camera3D);
-        renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-<<<<<<< HEAD
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
-=======
->>>>>>> parent of 3af370c0 (SHADOWS!!!)
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x, redLight.Position.y, redLight.Position.z);

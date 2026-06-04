@@ -3,12 +3,9 @@
 #include <wrl/client.h>
 #include <DirectXMath.h>
 #include <string>
-#include <memory> // Fixed: Required for std::shared_ptr
 
 namespace Engine
 {
-    class Texture2D; // Fixed: Forward declaration to resolve undeclared identifier
-
     struct DirectionalLight
     {
         DirectX::XMFLOAT3 Direction = { 0.0f, -1.0f, 0.5f };
