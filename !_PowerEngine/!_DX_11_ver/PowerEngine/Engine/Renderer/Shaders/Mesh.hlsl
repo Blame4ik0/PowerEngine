@@ -41,7 +41,9 @@ cbuffer ShadowBuffer : register(b4)
 {
     row_major float4x4 LightSpaceMatrix;
     float ShadowBias;
-    float3 _padS;
+    int PCFRadius;
+    float TexelSize;
+    float _padS;
 };
 
 Texture2D g_albedoMap : register(t0);
@@ -130,31 +132,35 @@ float3 CookTorrance(float3 N, float3 V, float3 L,
     return (diffuse + specular) * lightColor * lightIntensity * NdotL;
 }
 
-float SampleShadowPCF(float4 lightSpacePos, float3 normal, float3 lightDir)
+float SampleShadowPCF(float4 lightSpacePos)
 {
     float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-    float2 uv = float2(projCoords.x * 0.5f + 0.5f, -projCoords.y * 0.5f + 0.5f);
 
-    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f)
+    float2 uv;
+    uv.x = projCoords.x * 0.5f + 0.5f;
+    uv.y = -projCoords.y * 0.5f + 0.5f;
+
+    if (uv.x < 0.0f || uv.x > 1.0f ||
+        uv.y < 0.0f || uv.y > 1.0f ||
+        projCoords.z > 1.0f)
         return 1.0f;
 
-    float currentDepth = projCoords.z;
-    float bias = max(ShadowBias * (1.0f - dot(normal, lightDir)), ShadowBias * 0.5f);
-
+    float depth = projCoords.z - ShadowBias;
     float shadow = 0.0f;
-    float texelSize = 1.0f / 4096.0f;
+    float count = 0.0f;
 
-    [unroll]
-    for (int x = -1; x <= 1; x++)
+    for (int x = -PCFRadius; x <= PCFRadius; x++)
     {
-        [unroll]
-        for (int y = -1; y <= 1; y++)
+        for (int y = -PCFRadius; y <= PCFRadius; y++)
         {
-            float2 offset = float2(x, y) * texelSize;
-            shadow += g_shadowMap.SampleCmpLevelZero(g_shadowSampler, uv + offset, currentDepth - bias);
+            float2 offset = float2(x, y) * TexelSize;
+            shadow += g_shadowMap.SampleCmpLevelZero(
+                g_shadowSampler, uv + offset, depth);
+            count += 1.0f;
         }
     }
-    return shadow / 9.0f;
+
+    return (count > 0.0f) ? shadow / count : 1.0f;
 }
 
 float4 PS_Main(VSOutput input) : SV_TARGET
@@ -174,7 +180,7 @@ float4 PS_Main(VSOutput input) : SV_TARGET
         metallic = g_specularMap.Sample(g_sampler, input.TexCoord).r;
 
     float3 L = normalize(-DirLightDirection);
-    float shadowFactor = SampleShadowPCF(input.LightSpacePos, N, L);
+    float shadowFactor = SampleShadowPCF(input.LightSpacePos);
 
     float3 Lo = 0.0f;
 

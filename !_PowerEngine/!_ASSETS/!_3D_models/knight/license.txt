@@ -1,0 +1,11 @@
+Model Information:
+* title:	The Parade Armour of King Erik XIV of Sweden
+* source:	https://sketchfab.com/3d-models/the-parade-armour-of-king-erik-xiv-of-sweden-bd189bba7d9e4924b12826a6d68200d9
+* author:	The Royal Armoury (Livrustkammaren) (https://sketchfab.com/TheRoyalArmoury)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "The Parade Armour of King Erik XIV of Sweden" (https://sketchfab.com/3d-models/the-parade-armour-of-king-erik-xiv-of-sweden-bd189bba7d9e4924b12826a6d68200d9) by The Royal Armoury (Livrustkammaren) (https://sketchfab.com/TheRoyalArmoury) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

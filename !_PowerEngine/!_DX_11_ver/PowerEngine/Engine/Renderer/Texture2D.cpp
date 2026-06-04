@@ -68,6 +68,7 @@ namespace Engine
         return true;
     }
 
+
     bool Texture2D::LoadWhite(ID3D11Device* device)
     {
         unsigned char pixel[4] = { 255, 255, 255, 255 };
@@ -148,5 +149,44 @@ namespace Engine
 
         m_loaded = true;
         return true;
+    }
+
+    bool Texture2D::LoadFromAssimp(ID3D11Device* device, const aiTexture* tex)
+    {
+        if (!tex) return false;
+
+        // Compressed format (PNG/JPG embedded as raw bytes)
+        if (tex->mHeight == 0)
+        {
+            // Use stb_image to decode from memory
+            int w, h, channels;
+            unsigned char* data = stbi_load_from_memory(
+                reinterpret_cast<const unsigned char*>(tex->pcData),
+                tex->mWidth, &w, &h, &channels, 4);
+
+            if (!data)
+            {
+                LOG_ERROR("Texture2D: stbi failed on embedded texture: {}",
+                    stbi_failure_reason());
+                return false;
+            }
+
+            bool ok = LoadFromMemory(device, data, w, h);
+            stbi_image_free(data);
+            return ok;
+        }
+
+        // Raw ARGB8888 uncompressed
+        // Assimp stores as ARGB, we need RGBA — swap channels
+        std::vector<unsigned char> rgba(tex->mWidth * tex->mHeight * 4);
+        for (unsigned int i = 0; i < tex->mWidth * tex->mHeight; i++)
+        {
+            rgba[i * 4 + 0] = tex->pcData[i].r;
+            rgba[i * 4 + 1] = tex->pcData[i].g;
+            rgba[i * 4 + 2] = tex->pcData[i].b;
+            rgba[i * 4 + 3] = tex->pcData[i].a;
+        }
+
+        return LoadFromMemory(device, rgba.data(), tex->mWidth, tex->mHeight);
     }
 }

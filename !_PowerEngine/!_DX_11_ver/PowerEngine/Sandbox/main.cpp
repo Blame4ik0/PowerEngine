@@ -102,12 +102,12 @@ int main()
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
 
-    Engine::Mesh porsche;
-	bool porscheLoaded = porsche.Load(renderer.GetDevice(),
-		MODELS + "porsche/porsche.glb");
-	if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
-	porsche.SetPosition(0.0f, 0.5f, 0.0f);
-	porsche.SetScale(0.01f);
+    //   Engine::Mesh porsche;
+	//bool porscheLoaded = porsche.Load(renderer.GetDevice(),
+	//	MODELS + "porsche/porsche.glb");
+	//if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
+	//porsche.SetPosition(0.0f, 0.1f, 0.0f);
+	//porsche.SetScale(0.3f);
 
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(),
@@ -115,13 +115,21 @@ int main()
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
 
-    Engine::Mesh container;
-    bool containerLoaded = container.Load(renderer.GetDevice(),
-        CONTAINER + "Container.fbx");
-    if (!containerLoaded) LOG_ERROR("Failed to load container model.");
-    container.SetPosition(0.0f, 2.0f, 0.0f);
-	container.SetRotation(0.0f, 0.0f, 90.0f);
-    container.SetScale(0.01f);
+    //   Engine::Mesh container;
+    //   bool containerLoaded = container.Load(renderer.GetDevice(),
+    //       CONTAINER + "Container.fbx");
+    //   if (!containerLoaded) LOG_ERROR("Failed to load container model.");
+    //   container.SetPosition(0.0f, 2.0f, 0.0f);
+	//container.SetRotation(0.0f, 0.0f, 90.0f);
+    //   container.SetScale(0.01f);
+
+    //   Engine::Mesh knight;
+	//bool knightLoaded = knight.Load(renderer.GetDevice(),
+	//	MODELS + "knight/scene.gltf");
+	//if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
+	//knight.SetPosition(0.0f, 0.1f, 0.0f);
+	//knight.SetScale(0.08f);
+    //   knight.SetRotation(180.0f, 0.0f, 0.0f);
 
     Engine::Mesh floor;
 	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
@@ -138,6 +146,7 @@ int main()
     bool showCrosshair = false;
     bool showGrid = true;
     bool showShadows = true;
+	int shadowQuality = 3;
 
     LOG_INFO("Entering main loop.");
 
@@ -207,9 +216,18 @@ int main()
             camera3D.SetRotation(0.0f, 0.0f, 0.0f);
             fov = 60.0f;
         }
-        if (Engine::InputManager::IsKeyDown(Engine::Key::R) &&
+        if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) &&
             Engine::InputManager::IsKeyPressed(Engine::Key::L))
             lightIntensity = 3.0f;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::Up)) shadowQuality = std::min(shadowQuality + 1, 4);
+		if (Engine::InputManager::IsKeyPressed(Engine::Key::Down)) shadowQuality = std::max(shadowQuality - 1, 0);
+
+        if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) && Engine::InputManager::IsKeyDown(Engine::Key::U))
+        {
+			renderer3D.SetShadowQuality(static_cast<Engine::ShadowQuality>(shadowQuality));
+			LOG_INFO("Shadow quality set to {}.", shadowQuality);
+            LOG_WARN("!! Current changes only work with shadows. TBE later !!");
+        }
 
         // ---- Resize ----
         renderer.Resize(window.GetWidth(), window.GetHeight());
@@ -253,12 +271,20 @@ int main()
         f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
         f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
 
-        Engine::Material containerMat;
-        containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
-        containerMat.Metallic = 0.0f;
-        containerMat.Roughness = 0.5f;
-        containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
-        containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+        //Engine::Material containerMat;
+        //containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
+        //containerMat.Metallic = 0.0f;
+        //containerMat.Roughness = 0.5f;
+        //containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
+        //containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+
+		//Engine::Material knightMat;
+        //knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
+		//knightMat.Metallic = 0.0f;
+		//knightMat.Roughness = 0.5f;
+		//knightMat.AlbedoMap = MODELS + "knight/textures/diffuse.png";
+
+        //Engine::Material porscheMat = porsche.BuildMaterial();
 
         Engine::Material redBulbMat;
         redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
@@ -285,8 +311,12 @@ int main()
 		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
             renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+  //      if (porscheLoaded)
+  //          renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix(), porscheMat);
+  //      if (containerLoaded)
+  //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+		//if (knightLoaded)
+		//	//renderer3D.DrawMesh(knight, knight.GetWorldMatrix(), knightMat);
         renderer3D.EndShadowPass();
 
         // Main pass
@@ -295,8 +325,12 @@ int main()
         renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
             renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (containerLoaded)
-            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+		//if (porscheLoaded)
+		//	renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix(), porscheMat);
+  //      if (containerLoaded)
+  //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+  //      if (knightLoaded)
+  //          //renderer3D.DrawMesh(knight, knight.GetWorldMatrix(), knightMat);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,
@@ -319,14 +353,12 @@ int main()
             auto camPos = camera3D.GetPosition();
 
             int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
-            int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
+            //int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
 			int floorTris = floor.GetIndexCount() / 3;
-            int totalTris = f1Tris + containerTris + bulbTris * 2 + floorTris;
+            int totalTris = f1Tris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
-            int meshCount = (f1Loaded ? 1 : 0) +
-                (containerLoaded ? 1 : 0) +
-                (bulbLoaded ? 2 : 0);
+            int meshCount = (f1Loaded ? 1 : 0) + (bulbLoaded ? 2 : 0);
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +
@@ -349,6 +381,7 @@ int main()
                 "  Triangles: " + std::to_string(totalTris) + "\n" +
                 "  Shadows:   " + std::string(showShadows ? "on" : "off") + "\n" +
                 "  Sun intensity: " + std::to_string(lightIntensity).substr(0, 4) + "\n" +
+				"  Shadow quality: " + std::to_string(shadowQuality) + "\n" + 
                 "\n" +
                 "Controls\n" +
                 "  WASD           move\n" +
@@ -357,11 +390,13 @@ int main()
                 "  LShift         sprint\n" +
                 "  RMB+Scroll     FOV\n" +
                 "  L+Scroll       light intensity\n" +
-                "  R+L            reset light\n" +
+                "  RLAlt+L            reset light\n" +
                 "  R              reset camera\n" +
                 "  C              crosshair\n" +
                 "  G              grid\n" +
-                "  F4             shadows";
+                "  F4             shadows\n" + 
+                "  Up/Down        shadow quality\n" +
+                "  LAlt+U         update and reinit (to apply changes)";
 
             renderer2D.DrawText(font, info, 10.0f, 10.0f, 1.0f, 1.0f, 1.0f);
         }

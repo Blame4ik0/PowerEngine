@@ -2,6 +2,8 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <string>
+#include <vector>
+#include <assimp/texture.h>
 
 namespace Engine
 {
@@ -23,6 +25,9 @@ namespace Engine
         bool LoadFromMemory(ID3D11Device* device,
             const unsigned char* data,
             int width, int height);
+
+        bool LoadFromAssimp(ID3D11Device* device,
+            const aiTexture* tex);
 
         bool IsLoaded()  const { return m_loaded; }
         int  GetWidth()  const { return m_width; }

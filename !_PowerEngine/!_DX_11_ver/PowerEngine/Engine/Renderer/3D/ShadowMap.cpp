@@ -7,7 +7,8 @@ namespace Engine
 {
     bool ShadowMap::Init(ID3D11Device* device, const std::wstring& shaderPath, int resolution)
     {
-        m_resolution = resolution;
+        if (resolution > 0)
+            m_resolution = resolution;
 
         if (!m_shader.Load(device, shaderPath, "VS_Main", "PS_Main"))
             return false;
@@ -112,6 +113,34 @@ namespace Engine
     {
         ctx->PSSetShaderResources(srvSlot, 1, m_srv.GetAddressOf());
         ctx->PSSetSamplers(samplerSlot, 1, m_sampler.GetAddressOf());
+    }
+
+    void ShadowMap::SetQuality(ShadowQuality quality)
+    {
+        m_quality = quality;
+        switch (quality)
+        {
+        case ShadowQuality::Low:
+            m_resolution = 512;
+            m_pcfRadius = 0;
+            break;
+        case ShadowQuality::Medium:
+            m_resolution = 1024;
+            m_pcfRadius = 1;
+            break;
+        case ShadowQuality::High:
+            m_resolution = 2048;
+            m_pcfRadius = 1;
+            break;
+        case ShadowQuality::Ultra:
+            m_resolution = 4096;
+            m_pcfRadius = 2;
+            break;
+        case ShadowQuality::Cinematic:
+            m_resolution = 8192;
+            m_pcfRadius = 3;
+            break;
+        }
     }
 
     void ShadowMap::Shutdown()

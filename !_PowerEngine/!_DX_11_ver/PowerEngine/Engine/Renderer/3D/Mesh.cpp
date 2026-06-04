@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <Renderer/Texture2D.h>
 
 using namespace DirectX;
 
@@ -99,6 +100,7 @@ namespace Engine
 
     bool Mesh::Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode)
     {
+        m_device = device;
         Assimp::Importer importer;
 
         unsigned int flags =
@@ -171,10 +173,79 @@ namespace Engine
             }
         }
 
+        m_embeddedTextures.clear();
+        if (scene->mNumTextures > 0)
+        {
+            LOG_INFO("Mesh: found {} embedded texture(s) in '{}'.",
+                scene->mNumTextures, filepath);
+
+            for (unsigned int i = 0; i < scene->mNumTextures; i++)
+            {
+                aiTexture* aiTex = scene->mTextures[i];
+
+                auto tex = std::make_shared<Texture2D>();
+                if (tex->LoadFromAssimp(device, aiTex))
+                {
+                    EmbeddedTexture et;
+                    et.name = aiTex->mFilename.C_Str();
+                    et.texture = tex;
+                    m_embeddedTextures.push_back(et);
+                    LOG_INFO("Mesh:   embedded texture [{}]: '{}'",
+                        i, et.name.empty() ? "(unnamed)" : et.name);
+                }
+            }
+        }
+
         LOG_INFO("Mesh loaded: '{}' ({} vertices, {} indices).",
             filepath, vertices.size(), indices.size());
 
         return Upload(device, vertices, indices);
+    }
+
+    Engine::Material Mesh::BuildMaterial(
+        const std::string& albedoPath,
+        const std::string& normalPath,
+        const std::string& specularPath,
+        const std::string& glossPath) const
+    {
+        Engine::Material mat;
+
+        // Try to find embedded textures by common naming patterns
+        auto findEmbedded = [&](const std::string& hint)
+            -> std::shared_ptr<Texture2D>
+            {
+                if (m_embeddedTextures.empty()) return nullptr;
+
+                // If hint is empty just return the first texture
+                if (hint.empty() && !m_embeddedTextures.empty())
+                    return m_embeddedTextures[0].texture;
+
+                for (auto& et : m_embeddedTextures)
+                {
+                    std::string name = et.name;
+                    std::transform(name.begin(), name.end(),
+                        name.begin(), ::tolower);
+                    std::string h = hint;
+                    std::transform(h.begin(), h.end(), h.begin(), ::tolower);
+                    if (name.find(h) != std::string::npos)
+                        return et.texture;
+                }
+                return nullptr;
+            };
+
+        // Use embedded textures if no path provided
+        mat.AlbedoTex = albedoPath.empty() ? findEmbedded("diffuse") : nullptr;
+        mat.NormalTex = normalPath.empty() ? findEmbedded("normal") : nullptr;
+        mat.SpecularTex = specularPath.empty() ? findEmbedded("spec") : nullptr;
+        mat.GlossinessTex = glossPath.empty() ? findEmbedded("gloss") : nullptr;
+
+        // Fall back to paths
+        mat.AlbedoMap = albedoPath;
+        mat.NormalMap = normalPath;
+        mat.SpecularMap = specularPath;
+        mat.GlossinessMap = glossPath;
+
+        return mat;
     }
 
     // ---- Primitives ----

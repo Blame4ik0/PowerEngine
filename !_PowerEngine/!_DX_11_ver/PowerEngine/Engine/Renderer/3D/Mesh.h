@@ -4,6 +4,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
+#include "Light.h"
 
 namespace Engine
 {
@@ -22,6 +23,12 @@ namespace Engine
         FlipV,      // Assimp aiProcess_FlipUVs
         FlipU,      // manual U flip
         FlipBoth    // flip both
+    };
+
+    struct EmbeddedTexture
+    {
+        std::string                name;
+        std::shared_ptr<Texture2D> texture;
     };
 
     class Mesh
@@ -63,6 +70,20 @@ namespace Engine
         bool IsLoaded()      const { return m_loaded; }
         int  GetIndexCount() const { return m_indexCount; }
 
+        // Returns embedded textures extracted during Load()
+        const std::vector<EmbeddedTexture>& GetEmbeddedTextures() const
+        {
+            return m_embeddedTextures;
+        }
+
+        // Build a Material using embedded textures if available,
+        // falling back to provided paths
+        Engine::Material BuildMaterial(
+            const std::string& albedoPath = "",
+            const std::string& normalPath = "",
+            const std::string& specularPath = "",
+            const std::string& glossPath = "") const;
+
     private:
         bool Upload(ID3D11Device* device,
             const std::vector<Vertex3D>& vertices,
@@ -70,6 +91,9 @@ namespace Engine
 
         ComPtr<ID3D11Buffer> m_vertexBuffer;
         ComPtr<ID3D11Buffer> m_indexBuffer;
+
+        std::vector<EmbeddedTexture> m_embeddedTextures;
+        ID3D11Device* m_device = nullptr; // stored for BuildMaterial
 
         int  m_indexCount = 0;
         bool m_loaded = false;

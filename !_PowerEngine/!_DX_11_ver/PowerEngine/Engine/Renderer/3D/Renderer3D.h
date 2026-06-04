@@ -42,6 +42,8 @@ namespace Engine
         void BeginShadowPass();
         void EndShadowPass();
         void DebugDrawShadowMap(Renderer2D& renderer2D);
+        void SetShadowQuality(ShadowQuality quality);
+        ShadowQuality GetShadowQuality() const { return m_shadowMap.GetQuality(); }
 
         // Draw a mesh — respects current RenderPass
         void DrawMesh(const Mesh& mesh,
@@ -62,6 +64,8 @@ namespace Engine
     private:
         void       UpdateLightBuffer();
         Texture2D* GetOrLoadTexture(const std::string& path);
+        Texture2D* ResolveTexture(const std::shared_ptr<Texture2D>& direct,
+            const std::string& path);
 
         RenderContext* m_context = nullptr;
         Shader                          m_shader;

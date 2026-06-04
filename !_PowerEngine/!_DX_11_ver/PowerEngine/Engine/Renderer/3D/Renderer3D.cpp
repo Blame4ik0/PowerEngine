@@ -48,8 +48,10 @@ namespace Engine
     struct CBShadow
     {
         XMFLOAT4X4 LightSpaceMatrix;
-        float      ShadowBias = 0.001f;
-        XMFLOAT3   _pad = {};
+        float      ShadowBias;
+        int        PCFRadius;
+        float      TexelSize;
+        float      _pad;
     };
 
     struct CBShadowPass
@@ -340,6 +342,8 @@ namespace Engine
         XMStoreFloat4x4(&shadowCB.LightSpaceMatrix,
             m_shadowMap.GetLightSpaceMatrix());
         shadowCB.ShadowBias = 0.001f;
+        shadowCB.PCFRadius = m_shadowMap.GetPCFRadius();
+        shadowCB.TexelSize = 1.0f / static_cast<float>(m_shadowMap.GetResolution());
         UpdateCB(ctx, m_cbShadow.Get(), shadowCB);
 
         ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
@@ -349,6 +353,13 @@ namespace Engine
         m_shadowMap.BindForSampling(ctx, 5, 1);
 
         m_currentPass = RenderPass::Main;
+    }
+
+    void Renderer3D::SetShadowQuality(ShadowQuality quality)
+    {
+        m_shadowMap.SetQuality(quality);
+        m_shadowMap.Shutdown();
+        m_shadowMap.Init(m_context->GetDevice(), L"Shaders/Shadow.hlsl");
     }
 
     // ---- Draw ----
@@ -384,10 +395,10 @@ namespace Engine
         UpdateCB(ctx, m_cbPerObject.Get(), perObject);
 
         // Bind textures
-        Texture2D* albedo = GetOrLoadTexture(material.AlbedoMap);
-        Texture2D* normal = GetOrLoadTexture(material.NormalMap);
-        Texture2D* specular = GetOrLoadTexture(material.SpecularMap);
-        Texture2D* glossiness = GetOrLoadTexture(material.GlossinessMap);
+        Texture2D* albedo = ResolveTexture(material.AlbedoTex, material.AlbedoMap);
+        Texture2D* normal = ResolveTexture(material.NormalTex, material.NormalMap);
+        Texture2D* specular = ResolveTexture(material.SpecularTex, material.SpecularMap);
+        Texture2D* glossiness = ResolveTexture(material.GlossinessTex, material.GlossinessMap);
 
         albedo->Bind(ctx, 0);
         normal->Bind(ctx, 1);
@@ -486,5 +497,13 @@ namespace Engine
         ctx->PSSetShaderResources(0, 1, &nullSRV);
 
         renderer2D.Flush();
+    }
+
+    Texture2D* Renderer3D::ResolveTexture(
+        const std::shared_ptr<Texture2D>& direct,
+        const std::string& path)
+    {
+        if (direct) return direct.get();
+        return GetOrLoadTexture(path);
     }
 }
