@@ -101,11 +101,15 @@ int main()
 =======
     bool f1Loaded = f1.Load(renderer.GetDevice(),
         MODELS + "formula_1/f1_mesh.fbx");
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
     if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     Engine::Mesh porsche;
     bool porscheLoaded = porsche.Load(renderer.GetDevice(), MODELS + "porsche/porsche.glb");
@@ -113,6 +117,8 @@ int main()
     porsche.SetPosition(0.0f, 0.5f, 0.0f);
     porsche.SetScale(0.01f);
 
+=======
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
 =======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
     Engine::Mesh bulb;
@@ -312,6 +318,9 @@ int main()
             //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
             renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
         if (bulbLoaded)
         {

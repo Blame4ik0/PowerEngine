@@ -45,8 +45,13 @@ namespace Engine
     struct CBShadow
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         XMFLOAT4X4 LightSpaceMatrix = {};
         float      ShadowBias = 0.001f;
+=======
+        XMFLOAT4X4 LightSpaceMatrix;
+        float      ShadowBias = 0.005f;
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
 =======
         XMFLOAT4X4 LightSpaceMatrix;
         float      ShadowBias = 0.005f;
@@ -161,7 +166,12 @@ namespace Engine
         m_whiteTexture->LoadWhite(device);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 4096))
+=======
+        // Shadow map
+        if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 2048))
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
 =======
         // Shadow map
         if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 2048))
@@ -247,6 +257,7 @@ namespace Engine
         if (!m_shadowsEnabled) return;
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
 <<<<<<< HEAD
+<<<<<<< HEAD
         m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 15.0f);
         m_shadowMap.BeginShadowPass(ctx);
         m_shadowMap.GetShader().Bind(ctx);
@@ -256,6 +267,12 @@ namespace Engine
         // Compute light space matrix from current directional light
         m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 20.0f);
 
+=======
+
+        // Compute light space matrix from current directional light
+        m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 20.0f);
+
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
         // Start shadow pass — sets depth-only RT, shadow viewport, shadow rasterizer
         m_shadowMap.BeginShadowPass(ctx);
 
@@ -264,6 +281,9 @@ namespace Engine
         ctx->IASetInputLayout(m_inputLayout.Get());
 
         // Null pixel shader — we only write depth
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
         ctx->PSSetShader(nullptr, nullptr, 0);
         m_currentPass = RenderPass::Shadow;
@@ -287,6 +307,9 @@ namespace Engine
         XMStoreFloat4x4(&shadowCB.LightSpaceMatrix,
             m_shadowMap.GetLightSpaceMatrix());
         shadowCB.ShadowBias = 0.005f;
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
         UpdateCB(ctx, m_cbShadow.Get(), shadowCB);
 
@@ -329,6 +352,9 @@ namespace Engine
 <<<<<<< HEAD
 =======
         ctx->PSSetConstantBuffers(3, 1, m_cbMaterial.GetAddressOf());
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
 
         ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -398,6 +424,7 @@ namespace Engine
         return tex.get();
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     void Renderer3D::DebugDrawShadowMap(Renderer2D& renderer2D)
     {
@@ -416,6 +443,8 @@ namespace Engine
         ctx->PSSetShaderResources(0, 1, &nullSRV);
         renderer2D.Flush();
     }
+=======
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
 }
 =======
 }

@@ -12,7 +12,18 @@
     ]
   },
   "ExpandedNodes": [
+<<<<<<< HEAD
     ""
   ],
+=======
+    "",
+    "\\Engine",
+    "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\3D",
+    "\\Engine\\Renderer\\Shaders",
+    "\\Sandbox"
+  ],
+  "SelectedNode": "\\Engine\\Renderer\\RenderContext.h",
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
   "PreviewInSolutionExplorer": false
 }

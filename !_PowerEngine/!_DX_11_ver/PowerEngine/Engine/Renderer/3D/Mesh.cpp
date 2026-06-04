@@ -57,6 +57,7 @@ namespace Engine
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ====================== MATERIAL PARSING ======================
     Material ParseMaterial(ID3D11Device* device, aiMaterial* aiMat, const aiScene* scene, const std::string& directory)
     {
@@ -103,10 +104,15 @@ namespace Engine
     // ---- Assimp loader ----
 
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
+    // ---- Assimp loader ----
+
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
     bool Mesh::Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode)
     {
         Assimp::Importer importer;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         unsigned int flags = aiProcess_Triangulate |
             aiProcess_GenSmoothNormals |
@@ -118,10 +124,19 @@ namespace Engine
             aiProcess_Triangulate |
             aiProcess_GenNormals |
             aiProcess_CalcTangentSpace |
+=======
+        unsigned int flags =
+            aiProcess_Triangulate |
+            aiProcess_GenNormals |
+            aiProcess_CalcTangentSpace |
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
             aiProcess_JoinIdenticalVertices;
 
         if (uvMode == UVMode::FlipV)
             flags |= aiProcess_FlipUVs;
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
 
         const aiScene* scene = importer.ReadFile(filepath, flags);
@@ -129,8 +144,11 @@ namespace Engine
         if (!scene || !scene->mRootNode)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
             LOG_ERROR("Failed to load {}: {}", filepath, importer.GetErrorString());
 =======
+=======
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
             LOG_ERROR("Mesh: Assimp error for '{}': {}",
                 filepath, importer.GetErrorString());
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
@@ -195,6 +213,9 @@ namespace Engine
 
         LOG_INFO("Mesh loaded: '{}' ({} vertices, {} indices).",
             filepath, vertices.size(), indices.size());
+<<<<<<< HEAD
+>>>>>>> parent of 3af370c0 (SHADOWS!!!)
+=======
 >>>>>>> parent of 3af370c0 (SHADOWS!!!)
 
         for (unsigned int m = 0; m < scene->mNumMeshes; ++m)
