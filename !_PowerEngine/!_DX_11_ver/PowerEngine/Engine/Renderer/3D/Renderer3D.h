@@ -2,6 +2,7 @@
 #include "Renderer/RenderContext.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture2D.h"
+#include <Renderer/2D/Renderer2D.h>
 #include "Mesh.h"
 #include "Camera3D.h"
 #include "Light.h"
@@ -40,6 +41,7 @@ namespace Engine
         // Shadow pass — call BeginShadowPass, DrawMesh for casters, EndShadowPass
         void BeginShadowPass();
         void EndShadowPass();
+        void DebugDrawShadowMap(Renderer2D& renderer2D);
 
         // Draw a mesh — respects current RenderPass
         void DrawMesh(const Mesh& mesh,

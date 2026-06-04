@@ -97,10 +97,17 @@ int main()
     // ---- Models ----
     Engine::Mesh f1;
     bool f1Loaded = f1.Load(renderer.GetDevice(),
-        MODELS + "formula_1/f1_mesh.fbx");
+        MODELS + "formula_1/f1_mesh.obj");
     if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
     f1.SetPosition(0.0f, 0.3f, 0.0f);
     f1.SetScale(0.01f);
+
+    Engine::Mesh porsche;
+	bool porscheLoaded = porsche.Load(renderer.GetDevice(),
+		MODELS + "porsche/porsche.glb");
+	if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
+	porsche.SetPosition(0.0f, 0.5f, 0.0f);
+	porsche.SetScale(0.01f);
 
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(),
@@ -224,13 +231,13 @@ int main()
         Engine::PointLight redLight;
         redLight.Position = { 3.0f, 2.0f, 0.0f };
         redLight.Color = { 1.0f, 0.2f, 0.1f };
-        redLight.Intensity = 30.0f;
+        redLight.Intensity = 30.0f * lightIntensity;
         redLight.Radius = 10.0f;
 
         Engine::PointLight blueLight;
         blueLight.Position = { -3.0f, 2.0f, 0.0f };
         blueLight.Color = { 0.1f, 0.4f,  1.0f };
-        blueLight.Intensity = 30.0f;
+        blueLight.Intensity = 30.0f * lightIntensity;
         blueLight.Radius = 10.0f;
 
         renderer3D.ClearPointLights();
@@ -277,9 +284,9 @@ int main()
         renderer3D.BeginShadowPass();
 		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
-            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         renderer3D.EndShadowPass();
 
         // Main pass
@@ -287,9 +294,9 @@ int main()
             grid.Draw(camera3D);
         renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
         if (f1Loaded)
-            //renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         if (containerLoaded)
-            renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+            //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,

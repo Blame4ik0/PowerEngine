@@ -48,7 +48,7 @@ namespace Engine
     struct CBShadow
     {
         XMFLOAT4X4 LightSpaceMatrix;
-        float      ShadowBias = 0.005f;
+        float      ShadowBias = 0.001f;
         XMFLOAT3   _pad = {};
     };
 
@@ -190,7 +190,7 @@ namespace Engine
         m_whiteTexture->LoadWhite(device);
 
         // Shadow map
-        if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 2048))
+        if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 4096))
         {
             LOG_ERROR("Renderer3D: shadow map init failed.");
             return false;
@@ -302,17 +302,17 @@ namespace Engine
 
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
 
-        // Compute light space matrix from current directional light
-        m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 20.0f);
+        m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 15.0f);
 
-        // Start shadow pass — sets depth-only RT, shadow viewport, shadow rasterizer
         m_shadowMap.BeginShadowPass(ctx);
 
-        // Bind shadow shader and input layout
-        m_shadowMap.GetShader().Bind(ctx);
+        // Use shadow shader
+        m_shadowMap.GetShader().Bind(ctx);        // Make sure this works
+
+        // Use the same input layout as main pass (it matches Vertex3D)
         ctx->IASetInputLayout(m_inputLayout.Get());
 
-        // Null pixel shader — we only write depth
+        // No pixel shader needed for depth-only
         ctx->PSSetShader(nullptr, nullptr, 0);
 
         m_currentPass = RenderPass::Shadow;
@@ -339,7 +339,7 @@ namespace Engine
         CBShadow shadowCB;
         XMStoreFloat4x4(&shadowCB.LightSpaceMatrix,
             m_shadowMap.GetLightSpaceMatrix());
-        shadowCB.ShadowBias = 0.005f;
+        shadowCB.ShadowBias = 0.001f;
         UpdateCB(ctx, m_cbShadow.Get(), shadowCB);
 
         ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
@@ -410,6 +410,8 @@ namespace Engine
         ctx->VSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
         ctx->PSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
         ctx->PSSetConstantBuffers(3, 1, m_cbMaterial.GetAddressOf());
+        ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
+        ctx->PSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
 
         // Bind pipeline state
         m_shader.Bind(ctx);
@@ -454,5 +456,35 @@ namespace Engine
 
         m_textureCache[path] = tex;
         return tex.get();
+    }
+
+    void Renderer3D::DebugDrawShadowMap(Renderer2D& renderer2D)
+    {
+        if (!m_shadowsEnabled)
+            return;
+
+        // Simple full-screen quad in screen space for the shadow map
+        float size = 256.0f;
+        float x = m_context->GetWidth() - size - 20.0f;
+        float y = 20.0f;
+
+        // We'll reuse the white texture and just tint it with shadow map
+        // For simplicity, we'll draw a colored quad with the shadow map bound temporarily
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        // Bind shadow map to slot 0 temporarily for 2D renderer
+        m_shadowMap.BindForSampling(ctx, 0, 0);
+
+        renderer2D.BeginScreenSpace();
+
+        // Draw shadow map as textured quad (grayscale)
+        renderer2D.DrawSprite(*m_whiteTexture, x, y, size, size, 1.0f, 1.0f, 1.0f, 0.85f);
+
+        // Reset binding
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+        ctx->PSSetShaderResources(0, 1, &nullSRV);
+
+        renderer2D.Flush();
     }
 }

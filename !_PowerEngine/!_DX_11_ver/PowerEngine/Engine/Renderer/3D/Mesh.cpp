@@ -95,26 +95,49 @@ namespace Engine
         return true;
     }
 
-    // ---- Assimp loader ----
-
+    // ---- Assimp loader (Improved) ----
     bool Mesh::Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode)
     {
         Assimp::Importer importer;
 
         unsigned int flags =
             aiProcess_Triangulate |
-            aiProcess_GenNormals |
+            aiProcess_GenSmoothNormals |
             aiProcess_CalcTangentSpace |
-            aiProcess_JoinIdenticalVertices;
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_LimitBoneWeights |
+            aiProcess_FlipUVs;                    // Default: Flip V (most common)
 
+        // Fine-tune based on file extension
+        std::string ext = filepath.substr(filepath.find_last_of('.'));
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+        if (ext == ".obj")
+        {
+            flags |= aiProcess_FlipUVs;           // OBJ often needs UV flip
+        }
+        else if (ext == ".gltf" || ext == ".glb")
+        {
+            // GLTF usually has correct UVs
+            flags &= ~aiProcess_FlipUVs;
+        }
+        else if (ext == ".fbx")
+        {
+            // FBX often needs special handling
+            flags |= aiProcess_FlipUVs;
+        }
+
+        // Override with user preference
         if (uvMode == UVMode::FlipV)
             flags |= aiProcess_FlipUVs;
+        else if (uvMode == UVMode::Default)
+            flags &= ~aiProcess_FlipUVs;
 
         const aiScene* scene = importer.ReadFile(filepath, flags);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            LOG_ERROR("Mesh: Assimp error for '{}': {}",
+            LOG_ERROR("Mesh: Assimp failed to load '{}': {}",
                 filepath, importer.GetErrorString());
             return false;
         }
@@ -132,12 +155,14 @@ namespace Engine
             {
                 Vertex3D vert{};
 
+                // Position
                 vert.Position = {
                     mesh->mVertices[i].x,
                     mesh->mVertices[i].y,
                     mesh->mVertices[i].z
                 };
 
+                // Normal
                 if (mesh->HasNormals())
                 {
                     vert.Normal = {
@@ -146,12 +171,18 @@ namespace Engine
                         mesh->mNormals[i].z
                     };
                 }
+                else
+                {
+                    vert.Normal = { 0.0f, 1.0f, 0.0f }; // fallback
+                }
 
+                // UVs
                 if (mesh->mTextureCoords[0])
                 {
                     float u = mesh->mTextureCoords[0][i].x;
                     float v = mesh->mTextureCoords[0][i].y;
 
+                    // Additional manual flip if needed
                     if (uvMode == UVMode::FlipU || uvMode == UVMode::FlipBoth)
                         u = 1.0f - u;
                     if (uvMode == UVMode::FlipBoth)
@@ -159,20 +190,27 @@ namespace Engine
 
                     vert.TexCoord = { u, v };
                 }
+                else
+                {
+                    vert.TexCoord = { 0.0f, 0.0f };
+                }
 
                 vertices.push_back(vert);
             }
 
+            // Indices
             for (unsigned int i = 0; i < mesh->mNumFaces; i++)
             {
                 aiFace& face = mesh->mFaces[i];
                 for (unsigned int j = 0; j < face.mNumIndices; j++)
+                {
                     indices.push_back(baseVertex + face.mIndices[j]);
+                }
             }
         }
 
-        LOG_INFO("Mesh loaded: '{}' ({} vertices, {} indices).",
-            filepath, vertices.size(), indices.size());
+        LOG_INFO("Mesh loaded successfully: '{}' ({} vertices, {} indices, {} meshes)",
+            filepath, vertices.size(), indices.size(), scene->mNumMeshes);
 
         return Upload(device, vertices, indices);
     }
