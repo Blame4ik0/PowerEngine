@@ -4,11 +4,13 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
-#include "Light.h"
+#include <memory>
 
 namespace Engine
 {
     using Microsoft::WRL::ComPtr;
+
+    class Texture2D;
 
     struct Vertex3D
     {
@@ -17,18 +19,41 @@ namespace Engine
         DirectX::XMFLOAT2 TexCoord;
     };
 
-    enum class UVMode
-    {
-        Default,    // no flip
-        FlipV,      // Assimp aiProcess_FlipUVs
-        FlipU,      // manual U flip
-        FlipBoth    // flip both
-    };
+    enum class UVMode { Default, FlipV, FlipU, FlipBoth };
 
     struct EmbeddedTexture
     {
         std::string                name;
         std::shared_ptr<Texture2D> texture;
+    };
+
+    // A single draw call with its own material index
+    struct SubMesh
+    {
+        ComPtr<ID3D11Buffer> vertexBuffer;
+        ComPtr<ID3D11Buffer> indexBuffer;
+        int                  indexCount = 0;
+        int                  materialIndex = -1; // index into m_materials
+    };
+
+    // Material data extracted from the model file
+    struct MeshMaterial
+    {
+        std::string name;
+
+        // Resolved textures (may be embedded or loaded from disk)
+        std::shared_ptr<Texture2D> albedo;
+        std::shared_ptr<Texture2D> normal;
+        std::shared_ptr<Texture2D> metallicRoughness; // G=roughness, B=metallic
+        std::shared_ptr<Texture2D> specular;
+        std::shared_ptr<Texture2D> glossiness;
+
+        // Fallback PBR values when no texture
+        DirectX::XMFLOAT3 albedoFactor = { 1, 1, 1 };
+        float             metallicFactor = 0.0f;
+        float             roughnessFactor = 0.5f;
+
+        bool isMetallicRoughness = true; // GLTF vs SpecGloss workflow
     };
 
     class Mesh
@@ -41,7 +66,8 @@ namespace Engine
         Mesh& operator=(const Mesh&) = delete;
 
         // ---- Loading ----
-        bool Load(ID3D11Device* device, const std::string& filepath, UVMode uvMode = UVMode::FlipV);
+        bool Load(ID3D11Device* device, const std::string& filepath,
+            UVMode uvMode = UVMode::FlipV);
         bool CreateCube(ID3D11Device* device, float size = 1.0f);
         bool CreatePlane(ID3D11Device* device, float width = 1.0f,
             float height = 1.0f);
@@ -50,57 +76,67 @@ namespace Engine
 
         // ---- Transform ----
         void SetPosition(float x, float y, float z);
-        void SetRotation(float degreesX, float degreesY, float degreesZ);
+        void SetRotation(float degX, float degY, float degZ);
         void SetScale(float x, float y, float z);
         void SetScale(float uniform);
-
         void Move(float dx, float dy, float dz);
-        void Rotate(float degreesX, float degreesY, float degreesZ);
+        void Rotate(float degX, float degY, float degZ);
 
         DirectX::XMFLOAT3 GetPosition() const { return m_position; }
         DirectX::XMFLOAT3 GetRotation() const { return m_rotation; }
         DirectX::XMFLOAT3 GetScale()    const { return m_scale; }
-
-        // Returns the combined world matrix
         DirectX::XMMATRIX GetWorldMatrix() const;
 
-        // ---- Drawing ----
+        // ---- Draw ----
+        // Legacy single-material draw (for primitives)
         void Draw(ID3D11DeviceContext* ctx) const;
 
-        bool IsLoaded()      const { return m_loaded; }
-        int  GetIndexCount() const { return m_indexCount; }
+        // Draw a specific submesh
+        void DrawSubMesh(ID3D11DeviceContext* ctx, int subMeshIndex) const;
 
-        // Returns embedded textures extracted during Load()
+        // ---- Data access ----
+        bool IsLoaded()         const { return m_loaded; }
+        int  GetIndexCount()    const { return m_totalIndexCount; }
+        int  GetSubMeshCount()  const { return (int)m_subMeshes.size(); }
+        int  GetMaterialCount() const { return (int)m_materials.size(); }
+
+        const SubMesh& GetSubMesh(int i)  const { return m_subMeshes[i]; }
+        const MeshMaterial& GetMaterial(int i) const { return m_materials[i]; }
+
         const std::vector<EmbeddedTexture>& GetEmbeddedTextures() const
         {
             return m_embeddedTextures;
         }
 
-        // Build a Material using embedded textures if available,
-        // falling back to provided paths
-        Engine::Material BuildMaterial(
-            const std::string& albedoPath = "",
-            const std::string& normalPath = "",
-            const std::string& specularPath = "",
-            const std::string& glossPath = "") const;
+        bool HasEmbeddedMaterials() const { return !m_materials.empty(); }
 
     private:
-        bool Upload(ID3D11Device* device,
+        bool UploadSubMesh(ID3D11Device* device,
+            const std::vector<Vertex3D>& vertices,
+            const std::vector<uint32_t>& indices,
+            int materialIndex,
+            SubMesh& out);
+
+        bool UploadSingle(ID3D11Device* device,
             const std::vector<Vertex3D>& vertices,
             const std::vector<uint32_t>& indices);
 
+        std::vector<SubMesh>        m_subMeshes;
+        std::vector<MeshMaterial>   m_materials;
+        std::vector<EmbeddedTexture> m_embeddedTextures;
+
+        // Legacy single buffer (for primitives)
         ComPtr<ID3D11Buffer> m_vertexBuffer;
         ComPtr<ID3D11Buffer> m_indexBuffer;
 
-        std::vector<EmbeddedTexture> m_embeddedTextures;
-        ID3D11Device* m_device = nullptr; // stored for BuildMaterial
-
-        int  m_indexCount = 0;
+        int  m_totalIndexCount = 0;
         bool m_loaded = false;
+        bool m_hasSubMeshes = false;
 
-        // Transform
-        DirectX::XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
-        DirectX::XMFLOAT3 m_rotation = { 0.0f, 0.0f, 0.0f }; // degrees
-        DirectX::XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f };
+        DirectX::XMFLOAT3 m_position = { 0, 0, 0 };
+        DirectX::XMFLOAT3 m_rotation = { 0, 0, 0 };
+        DirectX::XMFLOAT3 m_scale = { 1, 1, 1 };
+
+        ID3D11Device* m_device = nullptr;
     };
 }

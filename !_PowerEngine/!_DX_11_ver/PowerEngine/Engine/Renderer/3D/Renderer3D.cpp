@@ -5,9 +5,6 @@ using namespace DirectX;
 
 namespace Engine
 {
-    // ---- GPU-side constant buffer layouts ----
-    // Must match HLSL cbuffer declarations byte-for-byte
-
     struct CBPerObject
     {
         XMFLOAT4X4 World;
@@ -26,8 +23,8 @@ namespace Engine
         float    _pad1 = 0;
         XMFLOAT3 DirLightColor;
         float    DirLightIntensity = 0;
-        XMFLOAT4 PointLightPosition[4]; // xyz=pos, w=radius
-        XMFLOAT4 PointLightColor[4];    // xyz=color, w=intensity
+        XMFLOAT4 PointLightPosition[4];
+        XMFLOAT4 PointLightColor[4];
         int      PointLightCount = 0;
         XMFLOAT3 _pad2 = {};
     };
@@ -48,10 +45,10 @@ namespace Engine
     struct CBShadow
     {
         XMFLOAT4X4 LightSpaceMatrix;
-        float      ShadowBias;
-        int        PCFRadius;
-        float      TexelSize;
-        float      _pad;
+        float      ShadowBias = 0.001f;
+        int        PCFRadius = 1;
+        float      TexelSize = 1.0f / 2048.0f;
+        float      _pad = 0;
     };
 
     struct CBShadowPass
@@ -60,24 +57,17 @@ namespace Engine
         XMFLOAT4X4 World;
     };
 
-    // ---- Helpers ----
-
     static ComPtr<ID3D11Buffer> CreateDynamicCB(ID3D11Device* device, UINT size)
     {
-        // Constant buffer size must be multiple of 16 bytes
         UINT aligned = (size + 15) & ~15u;
-
         D3D11_BUFFER_DESC desc{};
         desc.ByteWidth = aligned;
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
         ComPtr<ID3D11Buffer> buf;
-        HRESULT hr = device->CreateBuffer(&desc, nullptr, buf.GetAddressOf());
-        if (FAILED(hr))
-            LOG_ERROR("CreateDynamicCB failed. size={}, HRESULT={:#x}",
-                size, (unsigned)hr);
+        if (FAILED(device->CreateBuffer(&desc, nullptr, buf.GetAddressOf())))
+            LOG_ERROR("CreateDynamicCB failed. size={}", size);
         return buf;
     }
 
@@ -93,18 +83,15 @@ namespace Engine
         }
     }
 
-    // ---- Init / Shutdown ----
-
-    bool Renderer3D::Init(RenderContext* context, const std::wstring& shaderPath)
+    bool Renderer3D::Init(RenderContext* context,
+        const std::wstring& shaderPath)
     {
         m_context = context;
         ID3D11Device* device = context->GetDevice();
 
-        // Main PBR shader
         if (!m_shader.Load(device, shaderPath, "VS_Main", "PS_Main"))
             return false;
 
-        // Input layout — must match Vertex3D
         D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0,
@@ -122,12 +109,10 @@ namespace Engine
             m_inputLayout.GetAddressOf());
         if (FAILED(hr))
         {
-            LOG_ERROR("Renderer3D: CreateInputLayout failed. HRESULT: {:#x}",
-                (unsigned)hr);
+            LOG_ERROR("Renderer3D: CreateInputLayout failed.");
             return false;
         }
 
-        // Constant buffers
         m_cbPerObject = CreateDynamicCB(device, sizeof(CBPerObject));
         m_cbPerFrame = CreateDynamicCB(device, sizeof(CBPerFrame));
         m_cbLight = CreateDynamicCB(device, sizeof(CBLight));
@@ -138,39 +123,35 @@ namespace Engine
         if (!m_cbPerObject || !m_cbPerFrame || !m_cbLight ||
             !m_cbMaterial || !m_cbShadow || !m_cbShadowPass)
         {
-            LOG_ERROR("Renderer3D: failed to create one or more constant buffers.");
+            LOG_ERROR("Renderer3D: failed to create constant buffers.");
             return false;
         }
 
-        // Rasterizer — backface culling on for 3D
         D3D11_RASTERIZER_DESC rDesc{};
         rDesc.FillMode = D3D11_FILL_SOLID;
         rDesc.CullMode = D3D11_CULL_BACK;
         rDesc.FrontCounterClockwise = FALSE;
         rDesc.DepthClipEnable = TRUE;
 
-        hr = device->CreateRasterizerState(&rDesc, m_rasterizerState.GetAddressOf());
-        if (FAILED(hr))
+        if (FAILED(device->CreateRasterizerState(&rDesc,
+            m_rasterizerState.GetAddressOf())))
         {
             LOG_ERROR("Renderer3D: CreateRasterizerState failed.");
             return false;
         }
 
-        // Depth stencil — enabled for 3D
         D3D11_DEPTH_STENCIL_DESC dsDesc{};
         dsDesc.DepthEnable = TRUE;
         dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-        hr = device->CreateDepthStencilState(&dsDesc,
-            m_depthStencilState.GetAddressOf());
-        if (FAILED(hr))
+        if (FAILED(device->CreateDepthStencilState(&dsDesc,
+            m_depthStencilState.GetAddressOf())))
         {
             LOG_ERROR("Renderer3D: CreateDepthStencilState failed.");
             return false;
         }
 
-        // Texture sampler
         D3D11_SAMPLER_DESC sampDesc{};
         sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -180,25 +161,22 @@ namespace Engine
         sampDesc.MinLOD = 0;
         sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-        hr = device->CreateSamplerState(&sampDesc, m_sampler.GetAddressOf());
-        if (FAILED(hr))
+        if (FAILED(device->CreateSamplerState(&sampDesc,
+            m_sampler.GetAddressOf())))
         {
             LOG_ERROR("Renderer3D: CreateSamplerState failed.");
             return false;
         }
 
-        // 1x1 white fallback texture
         m_whiteTexture = std::make_shared<Texture2D>();
         m_whiteTexture->LoadWhite(device);
 
-        // Shadow map
-        if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 4096))
+        if (!m_shadowMap.Init(device, L"Shaders/Shadow.hlsl", 2048))
         {
             LOG_ERROR("Renderer3D: shadow map init failed.");
             return false;
         }
 
-        // Default directional light
         m_dirLight.Direction = { 0.5f, -1.0f, 0.5f };
         m_dirLight.Color = { 1.0f,  1.0f, 1.0f };
         m_dirLight.Intensity = 1.0f;
@@ -225,8 +203,6 @@ namespace Engine
         LOG_INFO("Renderer3D shut down.");
     }
 
-    // ---- Per-frame setup ----
-
     void Renderer3D::BeginScene(const Camera3D& camera)
     {
         m_view = camera.GetViewMatrix();
@@ -239,15 +215,12 @@ namespace Engine
         CBPerFrame perFrame;
         perFrame.CameraPosition = m_cameraPosition;
         UpdateCB(ctx, m_cbPerFrame.Get(), perFrame);
-
         UpdateLightBuffer();
 
         ctx->VSSetConstantBuffers(1, 1, m_cbPerFrame.GetAddressOf());
         ctx->PSSetConstantBuffers(1, 1, m_cbPerFrame.GetAddressOf());
         ctx->PSSetConstantBuffers(2, 1, m_cbLight.GetAddressOf());
     }
-
-    // ---- Lighting ----
 
     void Renderer3D::SetDirectionalLight(const DirectionalLight& light)
     {
@@ -296,7 +269,14 @@ namespace Engine
         UpdateCB(ctx, m_cbLight.Get(), light);
     }
 
-    // ---- Shadow pass ----
+    void Renderer3D::SetShadowQuality(ShadowQuality quality)
+    {
+        m_shadowMap.SetQuality(quality);
+        m_shadowMap.Shutdown();
+        m_shadowMap.Init(m_context->GetDevice(), L"Shaders/Shadow.hlsl");
+        LOG_INFO("Shadow quality changed. Resolution: {}",
+            m_shadowMap.GetResolution());
+    }
 
     void Renderer3D::BeginShadowPass()
     {
@@ -304,17 +284,10 @@ namespace Engine
 
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
 
-        m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 15.0f);
-
+        m_shadowMap.UpdateLightSpace(m_dirLight.Direction, 20.0f);
         m_shadowMap.BeginShadowPass(ctx);
-
-        // Use shadow shader
-        m_shadowMap.GetShader().Bind(ctx);        // Make sure this works
-
-        // Use the same input layout as main pass (it matches Vertex3D)
+        m_shadowMap.GetShader().Bind(ctx);
         ctx->IASetInputLayout(m_inputLayout.Get());
-
-        // No pixel shader needed for depth-only
         ctx->PSSetShader(nullptr, nullptr, 0);
 
         m_currentPass = RenderPass::Shadow;
@@ -326,7 +299,6 @@ namespace Engine
 
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
 
-        // Restore main render target
         ID3D11RenderTargetView* mainRTV = m_context->GetMainRTV();
         ID3D11DepthStencilView* mainDSV = m_context->GetMainDSV();
 
@@ -334,10 +306,9 @@ namespace Engine
             m_context->GetWidth(),
             m_context->GetHeight());
 
-        // Rebind render target explicitly — critical after shadow pass
+        // Rebind explicitly — critical after shadow pass
         ctx->OMSetRenderTargets(1, &mainRTV, mainDSV);
 
-        // Upload shadow constant buffer for main pass
         CBShadow shadowCB;
         XMStoreFloat4x4(&shadowCB.LightSpaceMatrix,
             m_shadowMap.GetLightSpaceMatrix());
@@ -349,20 +320,37 @@ namespace Engine
         ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
         ctx->PSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
 
-        // Bind shadow map SRV + comparison sampler for main pass
         m_shadowMap.BindForSampling(ctx, 5, 1);
 
         m_currentPass = RenderPass::Main;
     }
 
-    void Renderer3D::SetShadowQuality(ShadowQuality quality)
+    Texture2D* Renderer3D::GetOrLoadTexture(const std::string& path)
     {
-        m_shadowMap.SetQuality(quality);
-        m_shadowMap.Shutdown();
-        m_shadowMap.Init(m_context->GetDevice(), L"Shaders/Shadow.hlsl");
+        if (path.empty()) return m_whiteTexture.get();
+
+        auto it = m_textureCache.find(path);
+        if (it != m_textureCache.end())
+            return it->second.get();
+
+        auto tex = std::make_shared<Texture2D>();
+        if (!tex->Load(m_context->GetDevice(), path))
+        {
+            LOG_WARN("Renderer3D: texture not found '{}', using white.", path);
+            return m_whiteTexture.get();
+        }
+
+        m_textureCache[path] = tex;
+        return tex.get();
     }
 
-    // ---- Draw ----
+    Texture2D* Renderer3D::ResolveTexture(
+        const std::shared_ptr<Texture2D>& direct,
+        const std::string& path)
+    {
+        if (direct) return direct.get();
+        return GetOrLoadTexture(path);
+    }
 
     void Renderer3D::DrawMesh(const Mesh& mesh,
         const XMMATRIX& worldMatrix,
@@ -374,7 +362,6 @@ namespace Engine
 
         if (m_currentPass == RenderPass::Shadow)
         {
-            // Shadow pass — only world + light space matrix needed
             CBShadowPass cb;
             XMStoreFloat4x4(&cb.LightSpaceMatrix,
                 m_shadowMap.GetLightSpaceMatrix());
@@ -386,8 +373,7 @@ namespace Engine
             return;
         }
 
-        // Main pass — full PBR
-
+        // Upload per-object matrices
         CBPerObject perObject;
         XMStoreFloat4x4(&perObject.World, worldMatrix);
         XMStoreFloat4x4(&perObject.WorldViewProjection,
@@ -395,10 +381,14 @@ namespace Engine
         UpdateCB(ctx, m_cbPerObject.Get(), perObject);
 
         // Bind textures
-        Texture2D* albedo = ResolveTexture(material.AlbedoTex, material.AlbedoMap);
-        Texture2D* normal = ResolveTexture(material.NormalTex, material.NormalMap);
-        Texture2D* specular = ResolveTexture(material.SpecularTex, material.SpecularMap);
-        Texture2D* glossiness = ResolveTexture(material.GlossinessTex, material.GlossinessMap);
+        Texture2D* albedo = ResolveTexture(material.AlbedoTex,
+            material.AlbedoMap);
+        Texture2D* normal = ResolveTexture(material.NormalTex,
+            material.NormalMap);
+        Texture2D* specular = ResolveTexture(material.SpecularTex,
+            material.SpecularMap);
+        Texture2D* glossiness = ResolveTexture(material.GlossinessTex,
+            material.GlossinessMap);
 
         albedo->Bind(ctx, 0);
         normal->Bind(ctx, 1);
@@ -406,25 +396,23 @@ namespace Engine
         glossiness->Bind(ctx, 3);
         ctx->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
-        CBMaterial mat;
+        CBMaterial mat{};
         mat.Albedo = material.Albedo;
         mat.Metallic = material.Metallic;
         mat.Roughness = material.Roughness;
         mat.AmbientOcclusion = material.AmbientOcclusion;
-        mat.UseAlbedoMap = !material.AlbedoMap.empty() ? 1 : 0;
-        mat.UseNormalMap = !material.NormalMap.empty() ? 1 : 0;
-        mat.UseSpecularMap = !material.SpecularMap.empty() ? 1 : 0;
-        mat.UseGlossinessMap = !material.GlossinessMap.empty() ? 1 : 0;
+        mat.UseAlbedoMap = (material.AlbedoTex || !material.AlbedoMap.empty()) ? 1 : 0;
+        mat.UseNormalMap = (material.NormalTex || !material.NormalMap.empty()) ? 1 : 0;
+        mat.UseSpecularMap = (material.SpecularTex || !material.SpecularMap.empty()) ? 1 : 0;
+        mat.UseGlossinessMap = (material.GlossinessTex || !material.GlossinessMap.empty()) ? 1 : 0;
         UpdateCB(ctx, m_cbMaterial.Get(), mat);
 
-        // Bind constant buffers
         ctx->VSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
         ctx->PSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
         ctx->PSSetConstantBuffers(3, 1, m_cbMaterial.GetAddressOf());
         ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
         ctx->PSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
 
-        // Bind pipeline state
         m_shader.Bind(ctx);
         ctx->IASetInputLayout(m_inputLayout.Get());
         ctx->RSSetState(m_rasterizerState.Get());
@@ -446,64 +434,122 @@ namespace Engine
         DrawMesh(mesh, world, material);
     }
 
-    void Renderer3D::OnResize(float aspectRatio) {}
-
-    // ---- Texture cache ----
-
-    Texture2D* Renderer3D::GetOrLoadTexture(const std::string& path)
+    void Renderer3D::DrawMeshAuto(const Mesh& mesh,
+        const XMMATRIX& worldMatrix)
     {
-        if (path.empty()) return m_whiteTexture.get();
+        if (!mesh.IsLoaded()) return;
 
-        auto it = m_textureCache.find(path);
-        if (it != m_textureCache.end())
-            return it->second.get();
-
-        auto tex = std::make_shared<Texture2D>();
-        if (!tex->Load(m_context->GetDevice(), path))
+        // Shadow pass — just draw all geometry
+        if (m_currentPass == RenderPass::Shadow)
         {
-            LOG_WARN("Renderer3D: could not load texture '{}', using white.", path);
-            return m_whiteTexture.get();
+            DrawMesh(mesh, worldMatrix);
+            return;
         }
 
-        m_textureCache[path] = tex;
-        return tex.get();
+        // No embedded materials — fall back to default white material
+        if (!mesh.HasEmbeddedMaterials() || mesh.GetSubMeshCount() == 0)
+        {
+            DrawMesh(mesh, worldMatrix);
+            return;
+        }
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        // Upload per-object matrices once for all submeshes
+        CBPerObject perObject;
+        XMStoreFloat4x4(&perObject.World, worldMatrix);
+        XMStoreFloat4x4(&perObject.WorldViewProjection,
+            worldMatrix * m_view * m_projection);
+        UpdateCB(ctx, m_cbPerObject.Get(), perObject);
+
+        ctx->VSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
+        ctx->PSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
+        ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
+        ctx->PSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
+
+        m_shader.Bind(ctx);
+        ctx->IASetInputLayout(m_inputLayout.Get());
+        ctx->RSSetState(m_rasterizerState.Get());
+        ctx->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+        ctx->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+        int lastMatIdx = -2;
+
+        for (int s = 0; s < mesh.GetSubMeshCount(); s++)
+        {
+            const SubMesh& sub = mesh.GetSubMesh(s);
+            int            matIdx = sub.materialIndex;
+
+            if (matIdx != lastMatIdx)
+            {
+                if (matIdx >= 0 && matIdx < mesh.GetMaterialCount())
+                {
+                    const MeshMaterial& mm = mesh.GetMaterial(matIdx);
+
+                    Texture2D* albedo = mm.albedo
+                        ? mm.albedo.get() : m_whiteTexture.get();
+                    Texture2D* normal = mm.normal
+                        ? mm.normal.get() : m_whiteTexture.get();
+
+                    // GLTF metallic-roughness packed texture
+                    // G channel = roughness, B channel = metallic
+                    Texture2D* specular = m_whiteTexture.get();
+                    Texture2D* glossiness = m_whiteTexture.get();
+
+                    if (mm.isMetallicRoughness && mm.metallicRoughness)
+                        specular = mm.metallicRoughness.get();
+                    else
+                    {
+                        if (mm.specular)   specular = mm.specular.get();
+                        if (mm.glossiness) glossiness = mm.glossiness.get();
+                    }
+
+                    albedo->Bind(ctx, 0);
+                    normal->Bind(ctx, 1);
+                    specular->Bind(ctx, 2);
+                    glossiness->Bind(ctx, 3);
+
+                    CBMaterial mat{};
+                    mat.Albedo = mm.albedoFactor;
+                    mat.Metallic = mm.metallicFactor;
+                    mat.Roughness = mm.roughnessFactor;
+                    mat.AmbientOcclusion = 1.0f;
+                    mat.UseAlbedoMap = mm.albedo ? 1 : 0;
+                    mat.UseNormalMap = mm.normal ? 1 : 0;
+                    mat.UseSpecularMap = (mm.isMetallicRoughness
+                        && mm.metallicRoughness)
+                        || mm.specular ? 1 : 0;
+                    mat.UseGlossinessMap = (!mm.isMetallicRoughness
+                        && mm.glossiness) ? 1 : 0;
+                    UpdateCB(ctx, m_cbMaterial.Get(), mat);
+                    ctx->PSSetConstantBuffers(3, 1, m_cbMaterial.GetAddressOf());
+                }
+                lastMatIdx = matIdx;
+            }
+
+            mesh.DrawSubMesh(ctx, s);
+        }
     }
+
+    void Renderer3D::OnResize(float aspectRatio) {}
 
     void Renderer3D::DebugDrawShadowMap(Renderer2D& renderer2D)
     {
-        if (!m_shadowsEnabled)
-            return;
+        if (!m_shadowsEnabled) return;
 
-        // Simple full-screen quad in screen space for the shadow map
         float size = 256.0f;
         float x = m_context->GetWidth() - size - 20.0f;
         float y = 20.0f;
 
-        // We'll reuse the white texture and just tint it with shadow map
-        // For simplicity, we'll draw a colored quad with the shadow map bound temporarily
-
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
-
-        // Bind shadow map to slot 0 temporarily for 2D renderer
         m_shadowMap.BindForSampling(ctx, 0, 0);
 
         renderer2D.BeginScreenSpace();
+        renderer2D.DrawSprite(*m_whiteTexture, x, y, size, size,
+            1.0f, 1.0f, 1.0f, 0.85f);
 
-        // Draw shadow map as textured quad (grayscale)
-        renderer2D.DrawSprite(*m_whiteTexture, x, y, size, size, 1.0f, 1.0f, 1.0f, 0.85f);
-
-        // Reset binding
         ID3D11ShaderResourceView* nullSRV = nullptr;
         ctx->PSSetShaderResources(0, 1, &nullSRV);
-
         renderer2D.Flush();
-    }
-
-    Texture2D* Renderer3D::ResolveTexture(
-        const std::shared_ptr<Texture2D>& direct,
-        const std::string& path)
-    {
-        if (direct) return direct.get();
-        return GetOrLoadTexture(path);
     }
 }

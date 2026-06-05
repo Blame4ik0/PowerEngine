@@ -155,18 +155,18 @@ namespace Engine
     {
         if (!tex) return false;
 
-        // Compressed format (PNG/JPG embedded as raw bytes)
+        // Compressed — PNG/JPG stored as raw bytes, decode with stb_image
         if (tex->mHeight == 0)
         {
-            // Use stb_image to decode from memory
             int w, h, channels;
             unsigned char* data = stbi_load_from_memory(
                 reinterpret_cast<const unsigned char*>(tex->pcData),
-                tex->mWidth, &w, &h, &channels, 4);
+                static_cast<int>(tex->mWidth),
+                &w, &h, &channels, 4);
 
             if (!data)
             {
-                LOG_ERROR("Texture2D: stbi failed on embedded texture: {}",
+                LOG_ERROR("Texture2D::LoadFromAssimp: stbi failed: {}",
                     stbi_failure_reason());
                 return false;
             }
@@ -176,8 +176,7 @@ namespace Engine
             return ok;
         }
 
-        // Raw ARGB8888 uncompressed
-        // Assimp stores as ARGB, we need RGBA — swap channels
+        // Uncompressed ARGB8888 — convert to RGBA
         std::vector<unsigned char> rgba(tex->mWidth * tex->mHeight * 4);
         for (unsigned int i = 0; i < tex->mWidth * tex->mHeight; i++)
         {
@@ -187,6 +186,7 @@ namespace Engine
             rgba[i * 4 + 3] = tex->pcData[i].a;
         }
 
-        return LoadFromMemory(device, rgba.data(), tex->mWidth, tex->mHeight);
+        return LoadFromMemory(device, rgba.data(),
+            tex->mWidth, tex->mHeight);
     }
 }

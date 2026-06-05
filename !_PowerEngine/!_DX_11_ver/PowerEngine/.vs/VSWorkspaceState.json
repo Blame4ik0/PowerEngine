@@ -16,8 +16,9 @@
     "\\Engine",
     "\\Engine\\Renderer",
     "\\Engine\\Renderer\\3D",
+    "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"
   ],
-  "SelectedNode": "\\CMakeLists.txt",
+  "SelectedNode": "\\Engine\\Renderer\\3D\\Grid.cpp",
   "PreviewInSolutionExplorer": false
 }

@@ -10,11 +10,11 @@ namespace Engine
 
     enum class ShadowQuality
     {
-        Low,      // 512x512,  no PCF
-        Medium,   // 1024x1024, PCF 2x2
-        High,     // 2048x2048, PCF 3x3
-        Ultra,    // 4096x4096, PCF 5x5
-        Cinematic // 8192x8192, PCF 7x7
+        Low,       // 512,  PCF 0 (no filter)
+        Medium,    // 1024, PCF 1x1
+        High,      // 2048, PCF 3x3
+        Ultra,     // 4096, PCF 5x5
+        Cinematic  // 8192, PCF 7x7
     };
 
     class ShadowMap
@@ -23,7 +23,12 @@ namespace Engine
         ShadowMap() = default;
         ~ShadowMap() = default;
 
-        bool Init(ID3D11Device* device, const std::wstring& shaderPath, int resolution = 2048);
+        ShadowMap(const ShadowMap&) = delete;
+        ShadowMap& operator=(const ShadowMap&) = delete;
+
+        bool Init(ID3D11Device* device,
+            const std::wstring& shaderPath,
+            int resolution = 2048);
         void Shutdown();
 
         void BeginShadowPass(ID3D11DeviceContext* ctx);
@@ -32,17 +37,21 @@ namespace Engine
             ID3D11DepthStencilView* mainDSV,
             int viewportWidth, int viewportHeight);
 
-        void UpdateLightSpace(const DirectX::XMFLOAT3& lightDir, float sceneRadius = 60.0f);
+        void UpdateLightSpace(const DirectX::XMFLOAT3& lightDir,
+            float sceneRadius = 20.0f);
 
-        void BindForSampling(ID3D11DeviceContext* ctx, int srvSlot = 5, int samplerSlot = 1);
-        Shader& GetShader() { return m_shader; }
+        void BindForSampling(ID3D11DeviceContext* ctx,
+            int srvSlot = 5, int samplerSlot = 1);
 
-        DirectX::XMMATRIX GetLightSpaceMatrix() const { return m_lightSpaceMatrix; }
-
+        // Quality — call before Init or triggers reinit via Renderer3D
         void SetQuality(ShadowQuality quality);
-        ShadowQuality GetQuality() const { return m_quality; }
-        int GetPCFRadius() const { return m_pcfRadius; }
-        int GetResolution() const { return m_resolution; }
+        ShadowQuality GetQuality()    const { return m_quality; }
+        int           GetResolution() const { return m_resolution; }
+        int           GetPCFRadius()  const { return m_pcfRadius; }
+
+        Shader& GetShader() { return m_shader; }
+        DirectX::XMMATRIX         GetLightSpaceMatrix()  const { return m_lightSpaceMatrix; }
+        ID3D11ShaderResourceView* GetSRV()               const { return m_srv.Get(); }
 
     private:
         Shader                           m_shader;
@@ -51,13 +60,13 @@ namespace Engine
         ComPtr<ID3D11ShaderResourceView> m_srv;
         ComPtr<ID3D11SamplerState>       m_sampler;
         ComPtr<ID3D11RasterizerState>    m_rasterizerState;
-        ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+        ComPtr<ID3D11DepthStencilState>  m_depthStencilState;
 
-        DirectX::XMMATRIX                m_lightSpaceMatrix;
-        D3D11_VIEWPORT                   m_viewport{};
-        int                              m_resolution = 2048;
+        DirectX::XMMATRIX m_lightSpaceMatrix;
+        D3D11_VIEWPORT    m_viewport{};
 
-        ShadowQuality m_quality = ShadowQuality::Ultra;
+        ShadowQuality m_quality = ShadowQuality::High;
+        int           m_resolution = 2048;
         int           m_pcfRadius = 1;
     };
 }

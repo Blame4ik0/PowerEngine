@@ -1,0 +1,11 @@
+Model Information:
+* title:	Towel stack
+* source:	https://sketchfab.com/3d-models/towel-stack-56ebf3bf8cb445c9a743d3bf31e314bd
+* author:	matousekfoto (https://sketchfab.com/matousekfoto)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Towel stack" (https://sketchfab.com/3d-models/towel-stack-56ebf3bf8cb445c9a743d3bf31e314bd) by matousekfoto (https://sketchfab.com/matousekfoto) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

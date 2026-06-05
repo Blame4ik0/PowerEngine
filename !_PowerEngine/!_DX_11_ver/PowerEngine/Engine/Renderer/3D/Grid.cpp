@@ -44,9 +44,9 @@ namespace Engine
         float extent = size * spacing;
 
         XMFLOAT4 normalColor = { 0.30f, 0.30f, 0.30f, 1.0f };
-        XMFLOAT4 axisX = { 0.80f, 0.15f, 0.15f, 1.0f }; // red
-        XMFLOAT4 axisY = { 0.15f, 0.80f, 0.15f, 1.0f }; // green
-        XMFLOAT4 axisZ = { 0.15f, 0.35f, 0.80f, 1.0f }; // blue
+        XMFLOAT4 axisX = { 1.0f, 0.0f, 0.0f, 1.0f }; // red
+        XMFLOAT4 axisY = { 0.0f, 1.0f, 0.0f, 1.0f }; // green
+        XMFLOAT4 axisZ = { 0.0f, 0.0f, 1.0f, 1.0f }; // blue
 
         // Grid lines
         for (int i = -size; i <= size; i++)

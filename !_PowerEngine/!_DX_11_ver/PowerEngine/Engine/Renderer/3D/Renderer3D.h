@@ -2,7 +2,7 @@
 #include "Renderer/RenderContext.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture2D.h"
-#include <Renderer/2D/Renderer2D.h>
+#include "Renderer/2D/Renderer2D.h"
 #include "Mesh.h"
 #include "Camera3D.h"
 #include "Light.h"
@@ -30,22 +30,16 @@ namespace Engine
         bool Init(RenderContext* context, const std::wstring& shaderPath);
         void Shutdown();
 
-        // Call once per frame before any DrawMesh calls
         void BeginScene(const Camera3D& camera);
 
-        // Lighting
         void SetDirectionalLight(const DirectionalLight& light);
         void AddPointLight(const PointLight& light);
         void ClearPointLights();
 
-        // Shadow pass — call BeginShadowPass, DrawMesh for casters, EndShadowPass
         void BeginShadowPass();
         void EndShadowPass();
-        void DebugDrawShadowMap(Renderer2D& renderer2D);
-        void SetShadowQuality(ShadowQuality quality);
-        ShadowQuality GetShadowQuality() const { return m_shadowMap.GetQuality(); }
 
-        // Draw a mesh — respects current RenderPass
+        // Draw with explicit material (primitives, FBX with separate textures)
         void DrawMesh(const Mesh& mesh,
             const DirectX::XMMATRIX& worldMatrix,
             const Material& material = Material{});
@@ -56,9 +50,18 @@ namespace Engine
             float scaleX = 1, float scaleY = 1, float scaleZ = 1,
             const Material& material = Material{});
 
-        void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
-        bool ShadowsEnabled()      const { return m_shadowsEnabled; }
+        // Draw using embedded material data (GLTF, multi-material FBX)
+        void DrawMeshAuto(const Mesh& mesh,
+            const DirectX::XMMATRIX& worldMatrix);
 
+        void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
+        bool ShadowsEnabled()        const { return m_shadowsEnabled; }
+
+        // Shadow quality — reinitializes shadow map texture
+        void          SetShadowQuality(ShadowQuality quality);
+        ShadowQuality GetShadowQuality() const { return m_shadowMap.GetQuality(); }
+
+        void DebugDrawShadowMap(Renderer2D& renderer2D);
         void OnResize(float aspectRatio);
 
     private:
@@ -66,6 +69,8 @@ namespace Engine
         Texture2D* GetOrLoadTexture(const std::string& path);
         Texture2D* ResolveTexture(const std::shared_ptr<Texture2D>& direct,
             const std::string& path);
+        void       BindMaterialAndDraw(const Mesh& mesh, int subMeshIndex,
+            const MeshMaterial& meshMat);
 
         RenderContext* m_context = nullptr;
         Shader                          m_shader;

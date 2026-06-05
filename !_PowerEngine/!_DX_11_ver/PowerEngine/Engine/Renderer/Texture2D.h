@@ -26,8 +26,7 @@ namespace Engine
             const unsigned char* data,
             int width, int height);
 
-        bool LoadFromAssimp(ID3D11Device* device,
-            const aiTexture* tex);
+        bool LoadFromAssimp(ID3D11Device* device, const aiTexture* tex);
 
         bool IsLoaded()  const { return m_loaded; }
         int  GetWidth()  const { return m_width; }

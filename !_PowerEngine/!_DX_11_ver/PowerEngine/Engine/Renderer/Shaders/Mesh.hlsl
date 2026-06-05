@@ -48,7 +48,7 @@ cbuffer ShadowBuffer : register(b4)
 
 Texture2D g_albedoMap : register(t0);
 Texture2D g_normalMap : register(t1);
-Texture2D g_specularMap : register(t2);
+Texture2D g_specularMap : register(t2); // also metallic-roughness (GLTF)
 Texture2D g_glossMap : register(t3);
 Texture2D g_shadowMap : register(t5);
 
@@ -132,7 +132,7 @@ float3 CookTorrance(float3 N, float3 V, float3 L,
     return (diffuse + specular) * lightColor * lightIntensity * NdotL;
 }
 
-float SampleShadowPCF(float4 lightSpacePos)
+float SampleShadowPCF(float4 lightSpacePos, float3 N, float3 L)
 {
     float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
 
@@ -145,7 +145,10 @@ float SampleShadowPCF(float4 lightSpacePos)
         projCoords.z > 1.0f)
         return 1.0f;
 
-    float depth = projCoords.z - ShadowBias;
+    // Slope-scaled bias — steeper surfaces get more bias
+    float bias = max(ShadowBias * (1.0f - dot(N, L)), ShadowBias * 0.1f);
+    float depth = projCoords.z - bias;
+
     float shadow = 0.0f;
     float count = 0.0f;
 
@@ -160,7 +163,7 @@ float SampleShadowPCF(float4 lightSpacePos)
         }
     }
 
-    return (count > 0.0f) ? shadow / count : 1.0f;
+    return count > 0.0f ? shadow / count : 1.0f;
 }
 
 float4 PS_Main(VSOutput input) : SV_TARGET
@@ -174,40 +177,53 @@ float4 PS_Main(VSOutput input) : SV_TARGET
 
     if (UseAlbedoMap)
         albedo = g_albedoMap.Sample(g_sampler, input.TexCoord).rgb;
+
+    if (UseSpecularMap)
+    {
+        // Handles both GLTF metallic-roughness (G=rough, B=metallic)
+        // and plain specular workflow (R=metallic)
+        float4 mr = g_specularMap.Sample(g_sampler, input.TexCoord);
+        roughness = mr.g;
+        metallic = mr.b;
+        // If it looks like a plain specular map (all channels similar)
+        // fall back to using R as metallic
+        if (abs(mr.g - mr.b) < 0.01f && mr.r > 0.0f)
+            metallic = mr.r;
+    }
+
     if (UseGlossinessMap)
         roughness = 1.0f - g_glossMap.Sample(g_sampler, input.TexCoord).r;
-    if (UseSpecularMap)
-        metallic = g_specularMap.Sample(g_sampler, input.TexCoord).r;
 
     float3 L = normalize(-DirLightDirection);
-    float shadowFactor = SampleShadowPCF(input.LightSpacePos);
+    float shadowFactor = SampleShadowPCF(input.LightSpacePos, N, L);
 
-    float3 Lo = 0.0f;
+    float3 Lo = float3(0.0f, 0.0f, 0.0f);
 
-    // Directional Light
-    Lo += CookTorrance(N, V, L, albedo, metallic, roughness, DirLightColor, DirLightIntensity) * shadowFactor;
+    // Directional light — shadowed
+    Lo += CookTorrance(N, V, L, albedo, metallic, roughness,
+                       DirLightColor, DirLightIntensity) * shadowFactor;
 
-    // Point Lights
+    // Point lights — no shadow map yet
     for (int i = 0; i < PointLightCount; i++)
     {
         float3 lightPos = PointLightPositionRadius[i].xyz;
-        float radius = PointLightPositionRadius[i].w;
-        float3 color = PointLightColorIntensity[i].xyz;
-        float intensity = PointLightColorIntensity[i].w;
+        float lightRadius = PointLightPositionRadius[i].w;
+        float3 lightColor = PointLightColorIntensity[i].xyz;
+        float lightIntens = PointLightColorIntensity[i].w;
 
         float3 toLight = lightPos - input.WorldPos;
-        float dist = length(toLight);
+        float distance = length(toLight);
         float3 Lp = normalize(toLight);
-        float att = 1.0f / (dist * dist + 0.001f);
-        float radiusAtt = saturate(1.0f - dist / radius);
-        att *= radiusAtt * radiusAtt;
+        float att = 1.0f / (distance * distance + 0.001f);
+        float rf = saturate(1.0f - distance / lightRadius);
+        att *= rf * rf;
 
-        Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness, color, intensity * att);
+        Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness,
+                           lightColor, lightIntens * att);
     }
 
     float3 ambient = 0.08f * albedo * AmbientOcclusion;
     float3 color = ambient + Lo;
-
     color = color / (color + 1.0f);
     color = pow(color, 1.0f / 2.2f);
 

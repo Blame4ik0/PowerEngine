@@ -95,19 +95,27 @@ int main()
         0.1f, 1000.0f);
 
     // ---- Models ----
-    Engine::Mesh f1;
-    bool f1Loaded = f1.Load(renderer.GetDevice(),
-        MODELS + "formula_1/f1_mesh.obj");
-    if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
-    f1.SetPosition(0.0f, 0.3f, 0.0f);
-    f1.SetScale(0.01f);
+    //Engine::Mesh f1;
+    //bool f1Loaded = f1.Load(renderer.GetDevice(),
+    //    MODELS + "formula_1/f1_mesh.obj");
+    //if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
+    //f1.SetPosition(0.0f, 0.3f, 0.0f);
+    //f1.SetScale(0.01f);
 
-    //   Engine::Mesh porsche;
-	//bool porscheLoaded = porsche.Load(renderer.GetDevice(),
-	//	MODELS + "porsche/porsche.glb");
-	//if (!porscheLoaded) LOG_ERROR("Failed to load Porsche model.");
-	//porsche.SetPosition(0.0f, 0.1f, 0.0f);
-	//porsche.SetScale(0.3f);
+    Engine::Mesh sword;
+	bool swordLoaded = sword.Load(renderer.GetDevice(),
+		MODELS + "sword/sword.glb");
+	if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
+	sword.SetPosition(0.0f, 1.8f, 0.0f);
+	sword.SetScale(0.03f);
+
+ //   Engine::Mesh angel;
+	//bool angelLoaded = angel.Load(renderer.GetDevice(),
+ //       MODELS + "angel/scene.gltf");
+	//if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
+	//angel.SetPosition(0.0f, 0.1f, 0.0f);
+ //   angel.SetRotation(-90.0f, 180.0f, 0.0f);
+	//angel.SetScale(0.4f);
 
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(),
@@ -263,13 +271,13 @@ int main()
         renderer3D.AddPointLight(blueLight);
 
         // ---- Materials ----
-        Engine::Material f1Mat;
-        f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
-        f1Mat.Metallic = 0.0f;
-        f1Mat.Roughness = 0.5f;
-        f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
-        f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
-        f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
+        //Engine::Material f1Mat;
+        //f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
+        //f1Mat.Metallic = 0.0f;
+        //f1Mat.Roughness = 0.5f;
+        //f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
+        //f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
+        //f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
 
         //Engine::Material containerMat;
         //containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
@@ -284,7 +292,11 @@ int main()
 		//knightMat.Roughness = 0.5f;
 		//knightMat.AlbedoMap = MODELS + "knight/textures/diffuse.png";
 
-        //Engine::Material porscheMat = porsche.BuildMaterial();
+		//Engine::Material angelMat;
+		//angelMat.Albedo = { 1.0f, 1.0f, 1.0f };
+		//angelMat.Metallic = 0.0f;
+		//angelMat.Roughness = 0.5f;
+		//angelMat.AlbedoMap = MODELS + "angel/textures/tex.png";
 
         Engine::Material redBulbMat;
         redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
@@ -309,10 +321,12 @@ int main()
         // Shadow pass
         renderer3D.BeginShadowPass();
 		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-  //      if (porscheLoaded)
-  //          renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix(), porscheMat);
+        //if (angelLoaded)
+        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
+        //if (f1Loaded)
+        //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+        if (swordLoaded)
+            renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
   //      if (containerLoaded)
   //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
 		//if (knightLoaded)
@@ -323,10 +337,12 @@ int main()
         if (showGrid)
             grid.Draw(camera3D);
         renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        if (f1Loaded)
-            renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-		//if (porscheLoaded)
-		//	renderer3D.DrawMesh(porsche, porsche.GetWorldMatrix(), porscheMat);
+        //if (angelLoaded)
+        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
+        //if (f1Loaded)
+        //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+		if (swordLoaded)
+			renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
   //      if (containerLoaded)
   //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
   //      if (knightLoaded)
@@ -352,13 +368,15 @@ int main()
         {
             auto camPos = camera3D.GetPosition();
 
-            int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
+            //int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
             //int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
+			int swordTris = swordLoaded ? sword.GetIndexCount() / 3 : 0;
+			//int angelTris = angelLoaded ? angel.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
 			int floorTris = floor.GetIndexCount() / 3;
-            int totalTris = f1Tris + bulbTris * 2 + floorTris;
+            int totalTris = swordTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
-            int meshCount = (f1Loaded ? 1 : 0) + (bulbLoaded ? 2 : 0);
+            int meshCount = (swordLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +

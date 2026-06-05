@@ -1,13 +1,11 @@
 #pragma once
-#include <d3d11.h>
-#include <wrl/client.h>
 #include <DirectXMath.h>
 #include <string>
 #include <memory>
 
 namespace Engine
 {
-    class Texture2D; // forward declare
+    class Texture2D;
 
     struct DirectionalLight
     {
@@ -27,20 +25,19 @@ namespace Engine
 
     struct Material
     {
-        // PBR base values
+        // PBR base values — used when no texture is bound
         DirectX::XMFLOAT3 Albedo = { 1.0f, 1.0f, 1.0f };
         float             Metallic = 0.0f;
         float             Roughness = 0.5f;
         float             AmbientOcclusion = 1.0f;
 
-        // Option A: file paths — Renderer3D loads and caches them
+        // Option A: file paths — loaded and cached on first use
         std::string AlbedoMap;
         std::string NormalMap;
         std::string SpecularMap;
         std::string GlossinessMap;
 
-        // Option B: direct texture pointers — for embedded or pre-loaded textures
-        // These take priority over path strings if set
+        // Option B: pre-loaded textures — take priority over paths
         std::shared_ptr<Texture2D> AlbedoTex;
         std::shared_ptr<Texture2D> NormalTex;
         std::shared_ptr<Texture2D> SpecularTex;

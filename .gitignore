@@ -21,3 +21,6 @@ CMakeUserPresets.json
 \!_PowerEngine/\!_DX_11_ver/PowerEngine/.vs/PowerEngine.slnx/v18/DocumentLayout.json
 \!_PowerEngine/\!_DX_11_ver/PowerEngine/.vs/slnx.sqlite
 \!_PowerEngine/\!_DX_11_ver/PowerEngine/.vs/VSWorkspaceState.json
+*.json
+*.sqlite
+*.db
