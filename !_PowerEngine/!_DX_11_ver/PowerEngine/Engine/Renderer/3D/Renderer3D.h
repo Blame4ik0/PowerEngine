@@ -7,6 +7,7 @@
 #include "Camera3D.h"
 #include "Light.h"
 #include "ShadowMap.h"
+#include "PointShadowMap.h"
 #include <DirectXMath.h>
 #include <vector>
 #include <unordered_map>
@@ -38,6 +39,16 @@ namespace Engine
 
         void BeginShadowPass();
         void EndShadowPass();
+
+        void BeginPointShadowPass();
+        void EndPointShadowPass();
+        void SetPointShadowQuality(PointShadowQuality quality);
+        PointShadowQuality GetPointShadowQuality() const
+        {
+            return m_pointShadowMap.GetQuality();
+        }
+        void EnablePointShadows(bool enabled) { m_pointShadowsEnabled = enabled; }
+        void RenderPointShadowFace(int lightIndex, int face);
 
         // Draw with explicit material (primitives, FBX with separate textures)
         void DrawMesh(const Mesh& mesh,
@@ -96,6 +107,15 @@ namespace Engine
         ShadowMap                       m_shadowMap;
         RenderPass                      m_currentPass = RenderPass::Main;
         bool                            m_shadowsEnabled = true;
+
+        PointShadowMap                  m_pointShadowMap;
+        ComPtr<ID3D11Buffer>            m_cbPointShadow;
+        ComPtr<ID3D11Buffer>            m_cbPointShadowPass;
+        bool                            m_pointShadowsEnabled = true;
+
+        int m_activeShadowLight = 0;
+        int m_activeShadowFace = 0;
+        bool m_inPointShadowPass = false;
 
         std::unordered_map<std::string,
             std::shared_ptr<Texture2D>> m_textureCache;

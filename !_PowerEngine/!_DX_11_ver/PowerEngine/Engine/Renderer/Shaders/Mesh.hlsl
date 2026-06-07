@@ -46,11 +46,22 @@ cbuffer ShadowBuffer : register(b4)
     float _padS;
 };
 
+cbuffer PointShadowDataBuffer : register(b5)
+{
+    float4 PointShadowData[4]; // xyz=position, w=radius (-1 = no shadow)
+    int PointShadowCount;
+    float PointShadowBias;
+    int PoissonSamples; // 8 or 16
+    float _padPS;
+};
+
 Texture2D g_albedoMap : register(t0);
 Texture2D g_normalMap : register(t1);
 Texture2D g_specularMap : register(t2); // also metallic-roughness (GLTF)
 Texture2D g_glossMap : register(t3);
 Texture2D g_shadowMap : register(t5);
+TextureCubeArray g_pointShadowMaps : register(t6);
+SamplerState g_pointSampler : register(s2);
 
 SamplerState g_sampler : register(s0);
 SamplerComparisonState g_shadowSampler : register(s1);
@@ -166,6 +177,55 @@ float SampleShadowPCF(float4 lightSpacePos, float3 N, float3 L)
     return count > 0.0f ? shadow / count : 1.0f;
 }
 
+// 16-sample Poisson disk on unit sphere
+static const float3 s_poissonSphere[16] =
+{
+    float3(0.3568, 0.6425, -0.6831),
+    float3(-0.6820, -0.1565, 0.7143),
+    float3(0.7323, -0.6105, 0.3012),
+    float3(-0.1902, 0.8945, -0.4031),
+    float3(0.5765, 0.4032, 0.7123),
+    float3(-0.7645, 0.5901, 0.2543),
+    float3(0.2103, -0.9432, 0.2561),
+    float3(-0.4312, -0.7821, -0.4521),
+    float3(0.8901, 0.2341, -0.3912),
+    float3(-0.2341, 0.3012, 0.9234),
+    float3(0.4532, -0.3421, -0.8234),
+    float3(-0.8123, -0.4012, 0.4231),
+    float3(0.1234, 0.9812, 0.1432),
+    float3(-0.5432, 0.1234, -0.8301),
+    float3(0.7812, -0.4321, 0.4512),
+    float3(-0.3210, 0.7654, 0.5543)
+};
+
+float SamplePointShadow(int lightIndex, float3 worldPos,
+                         float3 lightPos, float lightRadius)
+{
+    float3 toFrag = worldPos - lightPos;
+    float currentDist = length(toFrag) / lightRadius;
+
+    if (currentDist >= 0.99f)
+        return 1.0f;
+
+    float3 sampleDir = normalize(toFrag);
+    float shadow = 0.0f;
+    float diskRadius = 0.005f;
+
+    for (int i = 0; i < PoissonSamples; i++)
+    {
+        float3 offset = s_poissonSphere[i] * diskRadius;
+        float3 sampleDir2 = normalize(sampleDir + offset);
+        float storedDepth = g_pointShadowMaps.Sample(
+            g_pointSampler,
+            float4(sampleDir2, (float) lightIndex)).r;
+
+        shadow += (currentDist > storedDepth + PointShadowBias)
+                  ? 0.0f : 1.0f;
+    }
+
+    return shadow / (float) PoissonSamples;
+}
+
 float4 PS_Main(VSOutput input) : SV_TARGET
 {
     float3 N = normalize(input.Normal);
@@ -203,7 +263,6 @@ float4 PS_Main(VSOutput input) : SV_TARGET
     Lo += CookTorrance(N, V, L, albedo, metallic, roughness,
                        DirLightColor, DirLightIntensity) * shadowFactor;
 
-    // Point lights — no shadow map yet
     for (int i = 0; i < PointLightCount; i++)
     {
         float3 lightPos = PointLightPositionRadius[i].xyz;
@@ -218,8 +277,16 @@ float4 PS_Main(VSOutput input) : SV_TARGET
         float rf = saturate(1.0f - distance / lightRadius);
         att *= rf * rf;
 
+        float pointShadow = 1.0f;
+        if (i < PointShadowCount && PointShadowData[i].w > 0.0f)
+        {
+            pointShadow = SamplePointShadow(i, input.WorldPos,
+                                         PointShadowData[i].xyz,
+                                         PointShadowData[i].w);
+        }
+
         Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness,
-                           lightColor, lightIntens * att);
+                       lightColor, lightIntens * att) * pointShadow;
     }
 
     float3 ambient = 0.08f * albedo * AmbientOcclusion;

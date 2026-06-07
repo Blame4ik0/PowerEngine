@@ -15,6 +15,7 @@ add_library(Engine STATIC
     Renderer/3D/Mesh.cpp
     Renderer/3D/Grid.cpp
     Renderer/3D/ShadowMap.cpp
+    Renderer/3D/PointShadowMap.cpp
 )
 
 target_include_directories(Engine

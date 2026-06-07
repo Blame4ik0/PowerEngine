@@ -1,0 +1,443 @@
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include <cmath>
+
+#include "Core/Logger.h"
+#include "Core/Timer.h"
+
+#include "Platform/Window.h"
+
+#include "Renderer/RenderContext.h"
+#include "Renderer/Texture2D.h"
+
+#include "Renderer/2D/Renderer2D.h"
+#include "Renderer/2D/Camera2D.h"
+#include "Renderer/2D/Font.h"
+
+#include "Renderer/3D/Renderer3D.h"
+#include "Renderer/3D/Camera3D.h"
+#include "Renderer/3D/Mesh.h"
+#include "Renderer/3D/Light.h"
+#include "Renderer/3D/Grid.h"
+
+#include "Input/InputManager.h"
+#include "Input/GamepadManager.h"
+
+int main()
+{
+    const std::string ASSETS = "../../../../../../!_ASSETS/";
+    const std::string FONTS = ASSETS + "!_fonts/";
+    const std::string TEXTURES = ASSETS + "!_test_materials/";
+    const std::string MODELS = ASSETS + "!_3D_models/";
+    const std::string F1_TEX = MODELS + "formula_1/Substance_SpecGloss/Right_ones/";
+    const std::string CONTAINER = MODELS + "container/";
+
+    SDL_SetMainReady();
+
+    LOG_INFO("PowerEngine starting...");
+
+    Engine::WindowProps props;
+    props.Title = "PowerEngine";
+    props.Width = 1280;
+    props.Height = 720;
+    props.VSync = false;
+    props.RefreshRate = 500;
+
+    Engine::Window window(props);
+
+    Engine::RenderContext renderer(
+        window.GetHWND(),
+        window.GetWidth(),
+        window.GetHeight(),
+        window.GetVSync(),
+        window.GetRefreshRate()
+    );
+
+    // ---- 2D ----
+    Engine::Renderer2D renderer2D;
+    if (!renderer2D.Init(&renderer, L"Shaders/Polygon.hlsl"))
+    {
+        LOG_ERROR("Renderer2D init failed.");
+        return -1;
+    }
+
+    Engine::Camera2D camera2D;
+    camera2D.SetViewSize(
+        static_cast<float>(window.GetWidth()),
+        static_cast<float>(window.GetHeight()));
+
+    Engine::Font font;
+    font.Load(renderer.GetDevice(), FONTS + "montserrat_bold.ttf", 16.0f);
+
+    // ---- 3D ----
+    Engine::Renderer3D renderer3D;
+    if (!renderer3D.Init(&renderer, L"Shaders/Mesh.hlsl"))
+    {
+        LOG_ERROR("Renderer3D init failed.");
+        return -1;
+    }
+
+    Engine::Grid grid;
+    if (!grid.Init(&renderer, L"Shaders/Grid.hlsl", &renderer3D, 100, 1.0f))
+    {
+        LOG_ERROR("Grid init failed.");
+        return -1;
+    }
+
+    float fov = 60.0f;
+    float lightIntensity = 3.0f;
+
+    Engine::Camera3D camera3D;
+    camera3D.SetPosition(0.0f, 6.0f, -10.0f);
+    camera3D.SetRotation(0.3f, 0.0f, 0.0f);
+    camera3D.SetPerspective(fov,
+        static_cast<float>(window.GetWidth()) /
+        static_cast<float>(window.GetHeight()),
+        0.1f, 1000.0f);
+
+    // ---- Primitives ----
+    Engine::Mesh ground;
+    ground.CreatePlane(renderer.GetDevice(), 30.0f, 30.0f);
+    ground.SetPosition(0.0f, 0.0f, 0.0f);
+
+    Engine::Mesh cube1;
+    cube1.CreateCube(renderer.GetDevice(), 2.0f);
+    cube1.SetPosition(0.0f, 1.0f, 0.0f);
+
+    Engine::Mesh cube2;
+    cube2.CreateCube(renderer.GetDevice(), 1.5f);
+    cube2.SetPosition(5.0f, 0.75f, 3.0f);
+
+    Engine::Mesh cube3;
+    cube3.CreateCube(renderer.GetDevice(), 1.0f);
+    cube3.SetPosition(-4.0f, 0.5f, 2.0f);
+
+    Engine::Mesh sphere1;
+    sphere1.CreateSphere(renderer.GetDevice(), 1.2f, 32, 32);
+    sphere1.SetPosition(-4.0f, 1.2f, -2.0f);
+
+    Engine::Mesh sphere2;
+    sphere2.CreateSphere(renderer.GetDevice(), 0.8f, 32, 32);
+    sphere2.SetPosition(4.0f, 0.8f, -1.0f);
+
+    Engine::Mesh sphere3;
+    sphere3.CreateSphere(renderer.GetDevice(), 1.5f, 32, 32);
+    sphere3.SetPosition(0.0f, 1.5f, 5.0f);
+
+    Engine::Mesh bulbMesh;
+    bool bulbLoaded = bulbMesh.Load(renderer.GetDevice(),
+        MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
+    bulbMesh.SetScale(1.2f);
+
+    // ---- Timer & Input ----
+    Engine::Timer timer;
+    timer.Reset();
+
+    Engine::InputManager::Init();
+    Engine::GamepadManager::Init();
+
+    bool showInfo = false;
+    bool showCrosshair = false;
+    bool showGrid = true;
+    bool showShadows = true;
+	int shadowQuality = 3;
+
+    LOG_INFO("Entering main loop.");
+
+    while (true)
+    {
+        Engine::InputManager::Update();
+        Engine::GamepadManager::Update();
+
+        if (!window.PollEvents())
+            break;
+
+        timer.Tick();
+        const float dt = timer.DeltaTime();
+
+        // ---- Camera control ----
+        if (Engine::InputManager::IsMouseButtonPressed(Engine::MouseButton::Right))
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        if (Engine::InputManager::IsMouseButtonReleased(Engine::MouseButton::Right))
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+
+        if (Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
+        {
+            float dx = Engine::InputManager::GetMouseDeltaX() * 0.003f;
+            float dy = Engine::InputManager::GetMouseDeltaY() * 0.003f;
+            camera3D.Rotate(dy, dx, 0.0f);
+        }
+
+        float multiplier = Engine::InputManager::IsKeyDown(Engine::Key::LShift)
+            ? 15.0f : 5.0f;
+        float speed = multiplier * dt;
+
+        if (Engine::InputManager::IsKeyDown(Engine::Key::W))     camera3D.Move(0, 0, speed);
+        if (Engine::InputManager::IsKeyDown(Engine::Key::S))     camera3D.Move(0, 0, -speed);
+        if (Engine::InputManager::IsKeyDown(Engine::Key::A))     camera3D.Move(-speed, 0, 0);
+        if (Engine::InputManager::IsKeyDown(Engine::Key::D))     camera3D.Move(speed, 0, 0);
+        if (Engine::InputManager::IsKeyDown(Engine::Key::Space)) camera3D.Move(0, speed, 0);
+        if (Engine::InputManager::IsKeyDown(Engine::Key::LCtrl)) camera3D.Move(0, -speed, 0);
+
+        float scroll = Engine::InputManager::GetMouseScrollDelta();
+        if (scroll != 0.0f &&
+            Engine::InputManager::IsMouseButtonDown(Engine::MouseButton::Right))
+        {
+            fov -= scroll * 2.0f;
+            fov = std::max(10.0f, std::min(120.0f, fov));
+        }
+        else if (scroll != 0.0f &&
+            Engine::InputManager::IsKeyDown(Engine::Key::L))
+        {
+            lightIntensity += scroll * 0.5f;
+            lightIntensity = std::max(0.0f, lightIntensity);
+        }
+
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F3))
+            showInfo = !showInfo;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::C))
+            showCrosshair = !showCrosshair;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::G))
+            showGrid = !showGrid;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F4))
+        {
+            showShadows = !showShadows;
+            renderer3D.EnableShadows(showShadows);
+        }
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::R))
+        {
+            camera3D.SetPosition(0.0f, 2.0f, -5.0f);
+            camera3D.SetRotation(0.0f, 0.0f, 0.0f);
+            fov = 60.0f;
+        }
+        if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) &&
+            Engine::InputManager::IsKeyPressed(Engine::Key::L))
+            lightIntensity = 3.0f;
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::Up)) shadowQuality = std::min(shadowQuality + 1, 4);
+		if (Engine::InputManager::IsKeyPressed(Engine::Key::Down)) shadowQuality = std::max(shadowQuality - 1, 0);
+
+        if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) && Engine::InputManager::IsKeyDown(Engine::Key::U))
+        {
+			renderer3D.SetShadowQuality(static_cast<Engine::ShadowQuality>(shadowQuality));
+			renderer3D.SetPointShadowQuality(static_cast<Engine::PointShadowQuality>(shadowQuality));
+			LOG_INFO("Shadow quality set to {}.", shadowQuality);
+            LOG_WARN("!! Current changes only work with shadows. TBE later !!");
+        }
+
+        // ---- Resize ----
+        renderer.Resize(window.GetWidth(), window.GetHeight());
+        camera2D.SetViewSize(
+            static_cast<float>(window.GetWidth()),
+            static_cast<float>(window.GetHeight()));
+        camera3D.SetPerspective(fov,
+            static_cast<float>(window.GetWidth()) /
+            static_cast<float>(window.GetHeight()),
+            0.1f, 1000.0f);
+
+        // ---- Lighting ----
+        Engine::DirectionalLight sun;
+        sun.Direction = { 0.3f, -1.0f, 0.5f };
+        sun.Color = { 1.0f, 0.95f, 0.88f };
+        sun.Intensity = lightIntensity;
+        renderer3D.SetDirectionalLight(sun);
+
+        Engine::PointLight redLight;
+        redLight.Position = { 4.0f, 3.0f, 0.0f };
+        redLight.Color = { 1.0f, 0.15f, 0.05f };
+        redLight.Intensity = 40.0f * lightIntensity;
+        redLight.Radius = 12.0f;
+
+        Engine::PointLight blueLight;
+        blueLight.Position = { -4.0f, 3.0f, 0.0f };
+        blueLight.Color = { 0.05f, 0.3f, 1.0f };
+        blueLight.Intensity = 40.0f * lightIntensity;
+        blueLight.Radius = 12.0f;
+
+        renderer3D.ClearPointLights();
+        renderer3D.AddPointLight(redLight);
+        renderer3D.AddPointLight(blueLight);
+
+        // ---- Materials ----
+        Engine::Material groundMat;
+        groundMat.Albedo = { 0.25f, 0.25f, 0.25f };
+        groundMat.Metallic = 0.0f;
+        groundMat.Roughness = 0.95f;
+
+        Engine::Material redMat;
+        redMat.Albedo = { 0.8f, 0.08f, 0.08f };
+        redMat.Metallic = 0.0f;
+        redMat.Roughness = 0.7f;
+
+        Engine::Material goldMat;
+        goldMat.Albedo = { 1.0f, 0.76f, 0.33f };
+        goldMat.Metallic = 1.0f;
+        goldMat.Roughness = 0.15f;
+
+        Engine::Material ironMat;
+        ironMat.Albedo = { 0.56f, 0.57f, 0.58f };
+        ironMat.Metallic = 1.0f;
+        ironMat.Roughness = 0.6f;
+
+        Engine::Material blueMat;
+        blueMat.Albedo = { 0.05f, 0.2f, 0.85f };
+        blueMat.Metallic = 0.0f;
+        blueMat.Roughness = 0.4f;
+
+        Engine::Material whiteMat;
+        whiteMat.Albedo = { 0.9f, 0.9f, 0.9f };
+        whiteMat.Metallic = 0.0f;
+        whiteMat.Roughness = 0.3f;
+
+        Engine::Material redBulbMat;
+        redBulbMat.Albedo = { 1.0f, 0.15f, 0.05f };
+        redBulbMat.Metallic = 0.0f;
+        redBulbMat.Roughness = 0.3f;
+
+        Engine::Material blueBulbMat;
+        blueBulbMat.Albedo = { 0.05f, 0.3f, 1.0f };
+        blueBulbMat.Metallic = 0.0f;
+        blueBulbMat.Roughness = 0.3f;
+
+        // ---- Render ----
+        renderer.BeginFrame(0.1f, 0.1f, 0.12f);
+
+        renderer3D.BeginScene(camera3D);
+
+        // Directional shadow pass
+        renderer3D.BeginShadowPass();
+        renderer3D.DrawMesh(ground, ground.GetWorldMatrix(), groundMat);
+        renderer3D.DrawMesh(cube1, cube1.GetWorldMatrix(), redMat);
+        renderer3D.DrawMesh(cube2, cube2.GetWorldMatrix(), goldMat);
+        renderer3D.DrawMesh(cube3, cube3.GetWorldMatrix(), ironMat);
+        renderer3D.DrawMesh(sphere1, sphere1.GetWorldMatrix(), blueMat);
+        renderer3D.DrawMesh(sphere2, sphere2.GetWorldMatrix(), goldMat);
+        renderer3D.DrawMesh(sphere3, sphere3.GetWorldMatrix(), whiteMat);
+        renderer3D.EndShadowPass();
+
+        // Point shadow pass
+        renderer3D.BeginPointShadowPass();
+        for (int light = 0; light < 2; light++)
+        {
+            for (int face = 0; face < 6; face++)
+            {
+                renderer3D.RenderPointShadowFace(light, face);
+                renderer3D.DrawMesh(ground, ground.GetWorldMatrix(), groundMat);
+                renderer3D.DrawMesh(cube1, cube1.GetWorldMatrix(), redMat);
+                renderer3D.DrawMesh(cube2, cube2.GetWorldMatrix(), goldMat);
+                renderer3D.DrawMesh(cube3, cube3.GetWorldMatrix(), ironMat);
+                renderer3D.DrawMesh(sphere1, sphere1.GetWorldMatrix(), blueMat);
+                renderer3D.DrawMesh(sphere2, sphere2.GetWorldMatrix(), goldMat);
+                renderer3D.DrawMesh(sphere3, sphere3.GetWorldMatrix(), whiteMat);
+            }
+        }
+        renderer3D.EndPointShadowPass();
+
+        // Main pass
+        if (showGrid)
+            grid.Draw(camera3D);
+
+        renderer3D.DrawMesh(ground, ground.GetWorldMatrix(), groundMat);
+        renderer3D.DrawMesh(cube1, cube1.GetWorldMatrix(), redMat);
+        renderer3D.DrawMesh(cube2, cube2.GetWorldMatrix(), goldMat);
+        renderer3D.DrawMesh(cube3, cube3.GetWorldMatrix(), ironMat);
+        renderer3D.DrawMesh(sphere1, sphere1.GetWorldMatrix(), blueMat);
+        renderer3D.DrawMesh(sphere2, sphere2.GetWorldMatrix(), goldMat);
+        renderer3D.DrawMesh(sphere3, sphere3.GetWorldMatrix(), whiteMat);
+
+        if (bulbLoaded)
+        {
+            bulbMesh.SetPosition(redLight.Position.x,
+                redLight.Position.y,
+                redLight.Position.z);
+            renderer3D.DrawMesh(bulbMesh, bulbMesh.GetWorldMatrix(), redBulbMat);
+
+            bulbMesh.SetPosition(blueLight.Position.x,
+                blueLight.Position.y,
+                blueLight.Position.z);
+            renderer3D.DrawMesh(bulbMesh, bulbMesh.GetWorldMatrix(), blueBulbMat);
+        }
+
+        // ---- 2D UI ----
+        renderer2D.BeginScene(camera2D);
+        renderer2D.BeginScreenSpace();
+
+        if (showInfo)
+        {
+            auto camPos = camera3D.GetPosition();
+
+            int totalTris = (ground.GetIndexCount() +
+                cube1.GetIndexCount() +
+                cube2.GetIndexCount() +
+                cube3.GetIndexCount() +
+                sphere1.GetIndexCount() +
+                sphere2.GetIndexCount() +
+                sphere3.GetIndexCount()) / 3;
+            int totalVerts = totalTris * 3;
+            int meshCount = 7 + (bulbLoaded ? 2 : 0);
+
+            std::string info =
+                "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +
+                "Frame time: " + std::to_string(
+                    timer.DeltaTime() * 1000.0f).substr(0, 5) + " ms\n" +
+                "\n" +
+                "Camera\n" +
+                "  Pos:   (" + std::to_string((int)camPos.x) + ", "
+                + std::to_string((int)camPos.y) + ", "
+                + std::to_string((int)camPos.z) + ")\n" +
+                "  Pitch: " + std::to_string(
+                    (int)DirectX::XMConvertToDegrees(camera3D.GetPitch())) + " deg\n" +
+                "  Yaw:   " + std::to_string(
+                    (int)DirectX::XMConvertToDegrees(camera3D.GetYaw())) + " deg\n" +
+                "  FOV:   " + std::to_string((int)fov) + " deg\n" +
+                "\n" +
+                "Scene\n" +
+                "  Meshes:    " + std::to_string(meshCount) + "\n" +
+                "  Vertices:  " + std::to_string(totalVerts) + "\n" +
+                "  Triangles: " + std::to_string(totalTris) + "\n" +
+                "  Shadows:   " + std::string(showShadows ? "on" : "off") + "\n" +
+                "  Sun intensity: " + std::to_string(lightIntensity).substr(0, 4) + "\n" +
+				"  Shadow quality: " + std::to_string(shadowQuality) + "\n" + 
+                "\n" +
+                "Controls\n" +
+                "  WASD           move\n" +
+                "  Space/Ctrl     up/down\n" +
+                "  RMB            look\n" +
+                "  LShift         sprint\n" +
+                "  RMB+Scroll     FOV\n" +
+                "  L+Scroll       light intensity\n" +
+                "  RLAlt+L            reset light\n" +
+                "  R              reset camera\n" +
+                "  C              crosshair\n" +
+                "  G              grid\n" +
+                "  F4             shadows\n" + 
+                "  Up/Down        shadow quality\n" +
+                "  LAlt+U         update and reinit (to apply changes)";
+
+            renderer2D.DrawText(font, info, 10.0f, 10.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            renderer2D.DrawText(font, "F3  info", 10.0f, 10.0f,
+                0.6f, 0.6f, 0.6f);
+        }
+
+        if (showCrosshair)
+            renderer2D.DrawText(font, "+",
+                static_cast<float>(window.GetWidth()) / 2.0f - 4.0f,
+                static_cast<float>(window.GetHeight()) / 2.0f - 8.0f,
+                1.0f, 1.0f, 1.0f);
+
+        renderer2D.Flush();
+
+        renderer.EndFrame();
+    }
+
+    grid.Shutdown();
+    renderer3D.Shutdown();
+    renderer2D.Shutdown();
+    Engine::GamepadManager::Shutdown();
+    Engine::InputManager::Shutdown();
+
+    LOG_INFO("Shutting down.");
+    return 0;
+}

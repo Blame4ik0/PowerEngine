@@ -131,13 +131,13 @@ int main()
 	//container.SetRotation(0.0f, 0.0f, 90.0f);
     //   container.SetScale(0.01f);
 
-    //   Engine::Mesh knight;
-	//bool knightLoaded = knight.Load(renderer.GetDevice(),
-	//	MODELS + "knight/scene.gltf");
-	//if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
-	//knight.SetPosition(0.0f, 0.1f, 0.0f);
-	//knight.SetScale(0.08f);
-    //   knight.SetRotation(180.0f, 0.0f, 0.0f);
+       Engine::Mesh knight;
+	bool knightLoaded = knight.Load(renderer.GetDevice(),
+		MODELS + "knight/scene.gltf");
+	if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
+	knight.SetPosition(0.0f, 0.1f, 0.0f);
+	knight.SetScale(0.08f);
+       knight.SetRotation(180.0f, 0.0f, 0.0f);
 
     Engine::Mesh floor;
 	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
@@ -233,6 +233,7 @@ int main()
         if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) && Engine::InputManager::IsKeyDown(Engine::Key::U))
         {
 			renderer3D.SetShadowQuality(static_cast<Engine::ShadowQuality>(shadowQuality));
+			renderer3D.SetPointShadowQuality(static_cast<Engine::PointShadowQuality>(shadowQuality));
 			LOG_INFO("Shadow quality set to {}.", shadowQuality);
             LOG_WARN("!! Current changes only work with shadows. TBE later !!");
         }
@@ -273,7 +274,7 @@ int main()
         // ---- Materials ----
         //Engine::Material f1Mat;
         //f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
-        //f1Mat.Metallic = 0.0f;
+        //f1Mat.Metallic = 1.0f;
         //f1Mat.Roughness = 0.5f;
         //f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
         //f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
@@ -287,7 +288,7 @@ int main()
         //containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
 
 		//Engine::Material knightMat;
-        //knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
+  //      knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
 		//knightMat.Metallic = 0.0f;
 		//knightMat.Roughness = 0.5f;
 		//knightMat.AlbedoMap = MODELS + "knight/textures/diffuse.png";
@@ -325,13 +326,36 @@ int main()
         //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
         //if (f1Loaded)
         //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        if (swordLoaded)
-            renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
+        //if (swordLoaded)
+        //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
   //      if (containerLoaded)
   //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-		//if (knightLoaded)
-		//	//renderer3D.DrawMesh(knight, knight.GetWorldMatrix(), knightMat);
+		if (knightLoaded)
+			renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
         renderer3D.EndShadowPass();
+
+		// Point shadow pass
+        renderer3D.BeginPointShadowPass();
+        for (int light = 0; light < 2; light++)
+        {
+            for (int face = 0; face < 6; face++)
+            {
+                renderer3D.RenderPointShadowFace(light, face);
+                renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
+
+                //if (angelLoaded)
+        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
+                //if (f1Loaded)
+                //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
+                //if (swordLoaded)
+                //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
+          //      if (containerLoaded)
+          //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+                if (knightLoaded)
+                    renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
+            }
+        }
+        renderer3D.EndPointShadowPass();
 
         // Main pass
         if (showGrid)
@@ -341,12 +365,12 @@ int main()
         //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
         //if (f1Loaded)
         //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-		if (swordLoaded)
-			renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
+		//if (swordLoaded)
+		//	renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
   //      if (containerLoaded)
   //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-  //      if (knightLoaded)
-  //          //renderer3D.DrawMesh(knight, knight.GetWorldMatrix(), knightMat);
+        if (knightLoaded)
+            renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,
@@ -370,13 +394,14 @@ int main()
 
             //int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
             //int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
-			int swordTris = swordLoaded ? sword.GetIndexCount() / 3 : 0;
+			//int swordTris = swordLoaded ? sword.GetIndexCount() / 3 : 0;
 			//int angelTris = angelLoaded ? angel.GetIndexCount() / 3 : 0;
+			int knightTris = knightLoaded ? knight.GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
 			int floorTris = floor.GetIndexCount() / 3;
-            int totalTris = swordTris + bulbTris * 2 + floorTris;
+            int totalTris = knightTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
-            int meshCount = (swordLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
+            int meshCount = (knightLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +

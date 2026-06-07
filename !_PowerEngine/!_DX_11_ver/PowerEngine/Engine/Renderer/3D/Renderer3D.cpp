@@ -57,6 +57,23 @@ namespace Engine
         XMFLOAT4X4 World;
     };
 
+    struct CBPointShadowPass
+    {
+        XMFLOAT4X4 FaceMatrix;
+        XMFLOAT3   LightPos;
+        float      LightRadius;
+        XMFLOAT4X4 World;
+    };
+
+    struct CBPointShadowData
+    {
+        XMFLOAT4 PointShadowData[4]; // xyz=pos, w=radius (-1=no shadow)
+        int      PointShadowCount;
+        float    PointShadowBias;
+        int      PoissonSamples;
+        float    _pad;
+    };
+
     static ComPtr<ID3D11Buffer> CreateDynamicCB(ID3D11Device* device, UINT size)
     {
         UINT aligned = (size + 15) & ~15u;
@@ -177,6 +194,21 @@ namespace Engine
             return false;
         }
 
+        m_cbPointShadow = CreateDynamicCB(device, sizeof(CBPointShadowData));
+        m_cbPointShadowPass = CreateDynamicCB(device, sizeof(CBPointShadowPass));
+
+        if (!m_cbPointShadow || !m_cbPointShadowPass)
+        {
+            LOG_ERROR("Renderer3D: failed to create point shadow CBs.");
+            return false;
+        }
+
+        if (!m_pointShadowMap.Init(device, L"Shaders/PointShadow.hlsl", 4, 512))
+        {
+            LOG_ERROR("Renderer3D: point shadow map init failed.");
+            return false;
+        }
+
         m_dirLight.Direction = { 0.5f, -1.0f, 0.5f };
         m_dirLight.Color = { 1.0f,  1.0f, 1.0f };
         m_dirLight.Intensity = 1.0f;
@@ -200,6 +232,9 @@ namespace Engine
         m_rasterizerState.Reset();
         m_depthStencilState.Reset();
         m_sampler.Reset();
+        m_pointShadowMap.Shutdown();
+        m_cbPointShadow.Reset();
+        m_cbPointShadowPass.Reset();
         LOG_INFO("Renderer3D shut down.");
     }
 
@@ -278,6 +313,15 @@ namespace Engine
             m_shadowMap.GetResolution());
     }
 
+    void Renderer3D::SetPointShadowQuality(PointShadowQuality quality)
+    {
+        m_pointShadowMap.SetQuality(quality);
+        m_pointShadowMap.Shutdown();
+        m_pointShadowMap.Init(m_context->GetDevice(),
+            L"Shaders/PointShadow.hlsl",
+            4, m_pointShadowMap.GetResolution());
+    }
+
     void Renderer3D::BeginShadowPass()
     {
         if (!m_shadowsEnabled) return;
@@ -325,6 +369,84 @@ namespace Engine
         m_currentPass = RenderPass::Main;
     }
 
+    void Renderer3D::BeginPointShadowPass()
+    {
+        if (!m_pointShadowsEnabled || m_pointLights.empty()) return;
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        // Update light data in the point shadow map
+        for (int i = 0; i < (int)m_pointLights.size() && i < 4; i++)
+        {
+            m_pointShadowMap.UpdateLight(i,
+                m_pointLights[i].Position,
+                m_pointLights[i].Radius);
+        }
+
+        m_pointShadowMap.GetShader().Bind(ctx);
+        ctx->IASetInputLayout(m_inputLayout.Get());
+        ctx->PSSetShader(nullptr, nullptr, 0);
+
+        m_currentPass = RenderPass::Shadow;
+    }
+
+    void Renderer3D::RenderPointShadowFace(int lightIndex, int face)
+    {
+        if (!m_pointShadowsEnabled) return;
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        m_pointShadowMap.BeginFace(ctx, lightIndex, face);
+
+        // Rebind shader and layout after BeginFace
+        m_pointShadowMap.GetShader().Bind(ctx);
+        ctx->IASetInputLayout(m_inputLayout.Get());
+        ctx->PSSetShader(nullptr, nullptr, 0);
+    }
+
+    void Renderer3D::EndPointShadowPass()
+    {
+        if (!m_pointShadowsEnabled) return;
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        ID3D11RenderTargetView* mainRTV = m_context->GetMainRTV();
+        ID3D11DepthStencilView* mainDSV = m_context->GetMainDSV();
+
+        m_pointShadowMap.EndAllFaces(ctx, mainRTV, mainDSV,
+            m_context->GetWidth(),
+            m_context->GetHeight());
+
+        ctx->OMSetRenderTargets(1, &mainRTV, mainDSV);
+
+        // Upload point shadow data for main pass
+        CBPointShadowData psd{};
+        int count = std::min((int)m_pointLights.size(), 4);
+        for (int i = 0; i < count; i++)
+        {
+            psd.PointShadowData[i] = {
+                m_pointLights[i].Position.x,
+                m_pointLights[i].Position.y,
+                m_pointLights[i].Position.z,
+                m_pointShadowsEnabled ? m_pointLights[i].Radius : -1.0f
+            };
+        }
+        // Mark unused slots
+        for (int i = count; i < 4; i++)
+            psd.PointShadowData[i].w = -1.0f;
+
+        psd.PointShadowCount = count;
+        psd.PointShadowBias = 0.01f;
+        psd.PoissonSamples = 16;
+        UpdateCB(ctx, m_cbPointShadow.Get(), psd);
+
+        ctx->PSSetConstantBuffers(5, 1, m_cbPointShadow.GetAddressOf());
+
+        m_pointShadowMap.BindForSampling(ctx, 6, 2);
+
+        m_currentPass = RenderPass::Main;
+    }
+
     Texture2D* Renderer3D::GetOrLoadTexture(const std::string& path)
     {
         if (path.empty()) return m_whiteTexture.get();
@@ -362,6 +484,44 @@ namespace Engine
 
         if (m_currentPass == RenderPass::Shadow)
         {
+            CBShadowPass cb;
+            XMStoreFloat4x4(&cb.LightSpaceMatrix,
+                m_shadowMap.GetLightSpaceMatrix());
+            XMStoreFloat4x4(&cb.World, worldMatrix);
+            UpdateCB(ctx, m_cbShadowPass.Get(), cb);
+            ctx->VSSetConstantBuffers(0, 1, m_cbShadowPass.GetAddressOf());
+            ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            mesh.Draw(ctx);
+            return;
+        }
+
+        if (m_currentPass == RenderPass::Shadow)
+        {
+            if (m_cbPointShadowPass) // point shadow pass
+            {
+                CBPointShadowPass cb{};
+                // FaceMatrix and LightData set externally per face
+                // Just upload world matrix
+                XMFLOAT4X4 faceMatData;
+                XMStoreFloat4x4(&faceMatData,
+                    m_pointShadowMap.GetFaceMatrix(
+                        m_activeShadowLight, m_activeShadowFace));
+
+                CBPointShadowPass pcb;
+                XMStoreFloat4x4(&pcb.FaceMatrix,
+                    m_pointShadowMap.GetFaceMatrix(
+                        m_activeShadowLight, m_activeShadowFace));
+                pcb.LightPos = m_pointShadowMap.GetLightPosition(m_activeShadowLight);
+                pcb.LightRadius = m_pointShadowMap.GetLightRadius(m_activeShadowLight);
+                XMStoreFloat4x4(&pcb.World, worldMatrix);
+                UpdateCB(ctx, m_cbPointShadowPass.Get(), pcb);
+                ctx->VSSetConstantBuffers(0, 1, m_cbPointShadowPass.GetAddressOf());
+                ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                mesh.Draw(ctx);
+                return;
+            }
+
+            // Directional shadow pass
             CBShadowPass cb;
             XMStoreFloat4x4(&cb.LightSpaceMatrix,
                 m_shadowMap.GetLightSpaceMatrix());
