@@ -30,11 +30,10 @@ namespace Engine
             const std::wstring& shaderPath,
             int maxLights = 4,
             int faceResolution = 512);
+
         void Shutdown();
 
-        void BeginFace(ID3D11DeviceContext* ctx,
-            int lightIndex, int face);
-
+        void BeginFace(ID3D11DeviceContext* ctx, int lightIndex, int face);
         void EndAllFaces(ID3D11DeviceContext* ctx,
             ID3D11RenderTargetView* mainRTV,
             ID3D11DepthStencilView* mainDSV,
@@ -48,34 +47,35 @@ namespace Engine
             int srvSlot = 6,
             int samplerSlot = 2);
 
-        void SetQuality(PointShadowQuality quality);
+        void               SetQuality(PointShadowQuality quality);
         PointShadowQuality GetQuality()    const { return m_quality; }
         int                GetResolution() const { return m_resolution; }
         int                GetMaxLights()  const { return m_maxLights; }
 
         Shader& GetShader() { return m_shader; }
-        DirectX::XMMATRIX GetFaceMatrix(int light, int face)   const;
-        float             GetLightRadius(int light)            const;
-        DirectX::XMFLOAT3 GetLightPosition(int light)         const;
+        DirectX::XMMATRIX  GetFaceMatrix(int light, int face) const;
+        DirectX::XMFLOAT3  GetLightPosition(int light)        const;
+        float              GetLightRadius(int light)          const;
 
     private:
-        bool ReinitTextures(ID3D11Device* device);
+        bool CreateTextures(ID3D11Device* device);
 
         Shader m_shader;
 
-        // Color cube array — stores linear depth as R32F
-        ComPtr<ID3D11Texture2D>          m_colorCubeArray;
-        ComPtr<ID3D11ShaderResourceView> m_srv;
-        ComPtr<ID3D11SamplerState>       m_sampler;
+        // R32F color cube array — stores linear depth (dist / radius)
+        ComPtr<ID3D11Texture2D>           m_colorTex;
+        ComPtr<ID3D11ShaderResourceView>  m_srv;
+        ComPtr<ID3D11SamplerState>        m_sampler;
 
         // One RTV per face per light
         std::vector<ComPtr<ID3D11RenderTargetView>> m_rtvs;
 
-        // Shared depth buffer for depth testing during shadow pass
-        ComPtr<ID3D11Texture2D>         m_depthBuffer;
-        ComPtr<ID3D11DepthStencilView>  m_depthDSV;
-        ComPtr<ID3D11DepthStencilState> m_depthStencilState;
-        ComPtr<ID3D11RasterizerState>   m_rasterizerState;
+        // Shared depth buffer (reused for all faces)
+        ComPtr<ID3D11Texture2D>           m_depthTex;
+        ComPtr<ID3D11DepthStencilView>    m_depthDSV;
+
+        ComPtr<ID3D11DepthStencilState>   m_depthStencilState;
+        ComPtr<ID3D11RasterizerState>     m_rasterizerState;
 
         D3D11_VIEWPORT     m_viewport{};
         PointShadowQuality m_quality = PointShadowQuality::Medium;
@@ -85,9 +85,10 @@ namespace Engine
         struct LightData
         {
             DirectX::XMFLOAT3 position = {};
-            float             radius = 10.0f;
+            float             radius = 10.f;
         };
-        std::vector<LightData>          m_lights;
-        std::vector<DirectX::XMMATRIX>  m_faceMatrices;
+
+        std::vector<LightData>             m_lights;
+        std::vector<DirectX::XMMATRIX>     m_faceMatrices;
     };
 }

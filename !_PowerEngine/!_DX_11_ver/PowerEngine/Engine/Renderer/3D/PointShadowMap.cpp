@@ -5,23 +5,24 @@ using namespace DirectX;
 
 namespace Engine
 {
-    static const XMFLOAT3 s_faceTargets[6] =
+    static const XMFLOAT3 s_targets[6] =
     {
-        {  1,  0,  0 }, // +X
-        { -1,  0,  0 }, // -X
-        {  0,  1,  0 }, // +Y
-        {  0, -1,  0 }, // -Y
-        {  0,  0,  1 }, // +Z
-        {  0,  0, -1 }, // -Z
+        {  1.0f,  0.0f,  0.0f }, // +X
+        { -1.0f,  0.0f,  0.0f }, // -X
+        {  0.0f,  1.0f,  0.0f }, // +Y
+        {  0.0f, -1.0f,  0.0f }, // -Y
+        {  0.0f,  0.0f,  1.0f }, // +Z
+        {  0.0f,  0.0f, -1.0f }, // -Z
     };
-    static const XMFLOAT3 s_faceUps[6] =
+
+    static const XMFLOAT3 s_ups[6] =
     {
-        {  0,  1,  0 },
-        {  0,  1,  0 },
-        {  0,  0, -1 },
-        {  0,  0,  1 },
-        {  0,  1,  0 },
-        {  0,  1,  0 },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 0.0f, -1.0f },
+        { 0.0f, 0.0f,  1.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
     };
 
     void PointShadowMap::SetQuality(PointShadowQuality quality)
@@ -33,6 +34,7 @@ namespace Engine
         case PointShadowQuality::Medium: m_resolution = 512;  break;
         case PointShadowQuality::High:   m_resolution = 1024; break;
         case PointShadowQuality::Ultra:  m_resolution = 2048; break;
+        default:                         m_resolution = 512;  break;
         }
     }
 
@@ -41,6 +43,9 @@ namespace Engine
         int maxLights,
         int faceResolution)
     {
+        if (!device || maxLights <= 0 || faceResolution <= 0)
+            return false;
+
         m_maxLights = maxLights;
         m_resolution = faceResolution;
 
@@ -50,166 +55,143 @@ namespace Engine
         m_lights.resize(maxLights);
         m_faceMatrices.resize(maxLights * 6, XMMatrixIdentity());
 
-        if (!ReinitTextures(device))
+        if (!CreateTextures(device))
             return false;
 
-        // Linear sampler — no comparison needed, just fetch stored depth
-        D3D11_SAMPLER_DESC sampDesc{};
-        sampDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-        sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-        sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-        sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-        sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        sampDesc.MinLOD = 0;
-        sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-        if (FAILED(device->CreateSamplerState(&sampDesc,
-            m_sampler.GetAddressOf())))
+        // Linear sampler (no comparison)
+        D3D11_SAMPLER_DESC sd{};
+        sd.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+        sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        sd.MinLOD = 0;
+        sd.MaxLOD = D3D11_FLOAT32_MAX;
+        if (FAILED(device->CreateSamplerState(&sd, m_sampler.GetAddressOf())))
         {
             LOG_ERROR("PointShadowMap: CreateSamplerState failed.");
             return false;
         }
 
-        D3D11_DEPTH_STENCIL_DESC dsDesc{};
-        dsDesc.DepthEnable = TRUE;
-        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-        dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-        dsDesc.StencilEnable = FALSE;
-
-        if (FAILED(device->CreateDepthStencilState(&dsDesc,
-            m_depthStencilState.GetAddressOf())))
+        // Depth-stencil state
+        D3D11_DEPTH_STENCIL_DESC dd{};
+        dd.DepthEnable = TRUE;
+        dd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        dd.DepthFunc = D3D11_COMPARISON_LESS;
+        dd.StencilEnable = FALSE;
+        if (FAILED(device->CreateDepthStencilState(&dd, m_depthStencilState.GetAddressOf())))
         {
             LOG_ERROR("PointShadowMap: CreateDepthStencilState failed.");
             return false;
         }
 
-        D3D11_RASTERIZER_DESC rDesc{};
-        rDesc.FillMode = D3D11_FILL_SOLID;
-        rDesc.CullMode = D3D11_CULL_BACK;
-        rDesc.FrontCounterClockwise = FALSE;
-        rDesc.DepthClipEnable = TRUE;
-        rDesc.DepthBias = 0;
-        rDesc.SlopeScaledDepthBias = 0.0f;
-
-        if (FAILED(device->CreateRasterizerState(&rDesc,
-            m_rasterizerState.GetAddressOf())))
+        // Rasterizer state
+        D3D11_RASTERIZER_DESC rd{};
+        rd.FillMode = D3D11_FILL_SOLID;
+        rd.CullMode = D3D11_CULL_BACK;
+        rd.FrontCounterClockwise = FALSE;
+        rd.DepthClipEnable = TRUE;
+        if (FAILED(device->CreateRasterizerState(&rd, m_rasterizerState.GetAddressOf())))
         {
             LOG_ERROR("PointShadowMap: CreateRasterizerState failed.");
             return false;
         }
 
-        m_viewport.TopLeftX = 0.0f;
-        m_viewport.TopLeftY = 0.0f;
-        m_viewport.Width = static_cast<float>(m_resolution);
-        m_viewport.Height = static_cast<float>(m_resolution);
-        m_viewport.MinDepth = 0.0f;
-        m_viewport.MaxDepth = 1.0f;
+        m_viewport = { 0.0f, 0.0f,
+                       static_cast<float>(m_resolution),
+                       static_cast<float>(m_resolution),
+                       0.0f, 1.0f };
 
-        LOG_INFO("PointShadowMap initialized ({} lights, {}x{} per face).",
-            maxLights, m_resolution, m_resolution);
+        LOG_INFO("PointShadowMap initialized ({} lights, {}x{} per face).", maxLights, m_resolution, m_resolution);
         return true;
     }
 
-    bool PointShadowMap::ReinitTextures(ID3D11Device* device)
+    bool PointShadowMap::CreateTextures(ID3D11Device* device)
     {
-        m_colorCubeArray.Reset();
+        m_colorTex.Reset();
         m_srv.Reset();
-        m_depthBuffer.Reset();
-        m_depthDSV.Reset();
         m_rtvs.clear();
+        m_depthTex.Reset();
+        m_depthDSV.Reset();
 
-        // Color R32F cube array — stores linear depth
-        D3D11_TEXTURE2D_DESC colDesc{};
-        colDesc.Width = static_cast<UINT>(m_resolution);
-        colDesc.Height = static_cast<UINT>(m_resolution);
-        colDesc.MipLevels = 1;
-        colDesc.ArraySize = static_cast<UINT>(m_maxLights * 6);
-        colDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        colDesc.SampleDesc = { 1, 0 };
-        colDesc.Usage = D3D11_USAGE_DEFAULT;
-        colDesc.BindFlags = D3D11_BIND_RENDER_TARGET |
-            D3D11_BIND_SHADER_RESOURCE;
-        colDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        // Color texture: Cube Array (R32_FLOAT linear depth)
+        D3D11_TEXTURE2D_DESC cd{};
+        cd.Width = cd.Height = static_cast<UINT>(m_resolution);
+        cd.MipLevels = 1;
+        cd.ArraySize = static_cast<UINT>(m_maxLights * 6);
+        cd.Format = DXGI_FORMAT_R32_FLOAT;
+        cd.SampleDesc = { 1, 0 };
+        cd.Usage = D3D11_USAGE_DEFAULT;
+        cd.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        cd.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-        if (FAILED(device->CreateTexture2D(&colDesc, nullptr,
-            m_colorCubeArray.GetAddressOf())))
+        if (FAILED(device->CreateTexture2D(&cd, nullptr, m_colorTex.GetAddressOf())))
         {
             LOG_ERROR("PointShadowMap: CreateTexture2D (color) failed.");
             return false;
         }
 
-        // One RTV per face per light
+        // Create one RTV per face per light
         m_rtvs.resize(m_maxLights * 6);
-        for (int light = 0; light < m_maxLights; light++)
+        for (int l = 0; l < m_maxLights; ++l)
         {
-            for (int face = 0; face < 6; face++)
+            for (int f = 0; f < 6; ++f)
             {
-                D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
-                rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-                rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-                rtvDesc.Texture2DArray.MipSlice = 0;
-                rtvDesc.Texture2DArray.FirstArraySlice = light * 6 + face;
-                rtvDesc.Texture2DArray.ArraySize = 1;
+                D3D11_RENDER_TARGET_VIEW_DESC rv{};
+                rv.Format = DXGI_FORMAT_R32_FLOAT;
+                rv.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+                rv.Texture2DArray.MipSlice = 0;
+                rv.Texture2DArray.FirstArraySlice = l * 6 + f;
+                rv.Texture2DArray.ArraySize = 1;
 
-                if (FAILED(device->CreateRenderTargetView(
-                    m_colorCubeArray.Get(), &rtvDesc,
-                    m_rtvs[light * 6 + face].GetAddressOf())))
+                if (FAILED(device->CreateRenderTargetView(m_colorTex.Get(), &rv,
+                    m_rtvs[l * 6 + f].GetAddressOf())))
                 {
-                    LOG_ERROR("PointShadowMap: CreateRTV failed l{} f{}.",
-                        light, face);
+                    LOG_ERROR("PointShadowMap: Failed to create RTV for light {} face {}", l, f);
                     return false;
                 }
             }
         }
 
-        // SRV — cube map array
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-        srvDesc.TextureCubeArray.MostDetailedMip = 0;
-        srvDesc.TextureCubeArray.MipLevels = 1;
-        srvDesc.TextureCubeArray.First2DArrayFace = 0;
-        srvDesc.TextureCubeArray.NumCubes = m_maxLights;
+        // SRV as TextureCubeArray
+        D3D11_SHADER_RESOURCE_VIEW_DESC sv{};
+        sv.Format = DXGI_FORMAT_R32_FLOAT;
+        sv.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+        sv.TextureCubeArray.MostDetailedMip = 0;
+        sv.TextureCubeArray.MipLevels = 1;
+        sv.TextureCubeArray.First2DArrayFace = 0;
+        sv.TextureCubeArray.NumCubes = m_maxLights;
 
-        if (FAILED(device->CreateShaderResourceView(
-            m_colorCubeArray.Get(), &srvDesc,
-            m_srv.GetAddressOf())))
+        if (FAILED(device->CreateShaderResourceView(m_colorTex.Get(), &sv, m_srv.GetAddressOf())))
         {
-            LOG_ERROR("PointShadowMap: CreateSRV failed.");
+            LOG_ERROR("PointShadowMap: CreateShaderResourceView failed.");
             return false;
         }
 
-        // Shared depth buffer — reused for all faces
-        D3D11_TEXTURE2D_DESC depthDesc{};
-        depthDesc.Width = static_cast<UINT>(m_resolution);
-        depthDesc.Height = static_cast<UINT>(m_resolution);
-        depthDesc.MipLevels = 1;
-        depthDesc.ArraySize = 1;
-        depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
-        depthDesc.SampleDesc = { 1, 0 };
-        depthDesc.Usage = D3D11_USAGE_DEFAULT;
-        depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+        // Shared depth buffer
+        D3D11_TEXTURE2D_DESC dd{};
+        dd.Width = dd.Height = static_cast<UINT>(m_resolution);
+        dd.MipLevels = 1;
+        dd.ArraySize = 1;
+        dd.Format = DXGI_FORMAT_D32_FLOAT;
+        dd.SampleDesc = { 1, 0 };
+        dd.Usage = D3D11_USAGE_DEFAULT;
+        dd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-        if (FAILED(device->CreateTexture2D(&depthDesc, nullptr,
-            m_depthBuffer.GetAddressOf())))
+        if (FAILED(device->CreateTexture2D(&dd, nullptr, m_depthTex.GetAddressOf())))
         {
             LOG_ERROR("PointShadowMap: CreateTexture2D (depth) failed.");
             return false;
         }
 
-        if (FAILED(device->CreateDepthStencilView(m_depthBuffer.Get(),
-            nullptr, m_depthDSV.GetAddressOf())))
+        if (FAILED(device->CreateDepthStencilView(m_depthTex.Get(), nullptr, m_depthDSV.GetAddressOf())))
         {
-            LOG_ERROR("PointShadowMap: CreateDSV failed.");
+            LOG_ERROR("PointShadowMap: CreateDepthStencilView failed.");
             return false;
         }
 
         return true;
     }
 
-    void PointShadowMap::UpdateLight(int lightIndex,
-        const XMFLOAT3& position,
-        float radius)
+    void PointShadowMap::UpdateLight(int lightIndex, const XMFLOAT3& position, float radius)
     {
         if (lightIndex < 0 || lightIndex >= m_maxLights) return;
 
@@ -217,37 +199,33 @@ namespace Engine
         m_lights[lightIndex].radius = radius;
 
         XMVECTOR pos = XMLoadFloat3(&position);
-        XMMATRIX proj = XMMatrixPerspectiveFovLH(
-            XM_PIDIV2, 1.0f, 0.01f, radius);
+        XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, 0.05f, radius);
 
-        for (int face = 0; face < 6; face++)
+        for (int f = 0; f < 6; ++f)
         {
-            XMVECTOR target = pos + XMLoadFloat3(&s_faceTargets[face]);
-            XMVECTOR up = XMLoadFloat3(&s_faceUps[face]);
-            XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-            m_faceMatrices[lightIndex * 6 + face] = view * proj;
+            XMVECTOR tgt = pos + XMLoadFloat3(&s_targets[f]);
+            XMVECTOR up = XMLoadFloat3(&s_ups[f]);
+
+            m_faceMatrices[lightIndex * 6 + f] = XMMatrixLookAtLH(pos, tgt, up) * proj;
         }
     }
 
-    void PointShadowMap::BeginFace(ID3D11DeviceContext* ctx,
-        int lightIndex, int face)
+    void PointShadowMap::BeginFace(ID3D11DeviceContext* ctx, int lightIndex, int face)
     {
-        int idx = lightIndex * 6 + face;
-        if (idx < 0 || idx >= (int)m_rtvs.size()) return;
+        if (!ctx || lightIndex < 0 || lightIndex >= m_maxLights || face < 0 || face >= 6)
+            return;
 
-        // Unbind SRV
+        // Unbind shadow map from pixel shader to avoid read/write conflict
         ID3D11ShaderResourceView* nullSRV = nullptr;
         ctx->PSSetShaderResources(6, 1, &nullSRV);
 
-        // Clear color to max depth (1.0) and depth buffer
+        int idx = lightIndex * 6 + face;
+
         float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
         ctx->ClearRenderTargetView(m_rtvs[idx].Get(), clearColor);
-        ctx->ClearDepthStencilView(m_depthDSV.Get(),
-            D3D11_CLEAR_DEPTH, 1.0f, 0);
+        ctx->ClearDepthStencilView(m_depthDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-        // Bind color RTV + shared depth buffer
-        ctx->OMSetRenderTargets(1, m_rtvs[idx].GetAddressOf(),
-            m_depthDSV.Get());
+        ctx->OMSetRenderTargets(1, m_rtvs[idx].GetAddressOf(), m_depthDSV.Get());
         ctx->RSSetViewports(1, &m_viewport);
         ctx->RSSetState(m_rasterizerState.Get());
         ctx->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
@@ -258,48 +236,52 @@ namespace Engine
         ID3D11DepthStencilView* mainDSV,
         int vpWidth, int vpHeight)
     {
+        if (!ctx) return;
+
         ctx->OMSetRenderTargets(1, &mainRTV, mainDSV);
 
-        D3D11_VIEWPORT vp{};
-        vp.Width = static_cast<float>(vpWidth);
-        vp.Height = static_cast<float>(vpHeight);
-        vp.MinDepth = 0.0f;
-        vp.MaxDepth = 1.0f;
+        D3D11_VIEWPORT vp{ 0.0f, 0.0f, static_cast<float>(vpWidth), static_cast<float>(vpHeight), 0.0f, 1.0f };
         ctx->RSSetViewports(1, &vp);
     }
 
-    void PointShadowMap::BindForSampling(ID3D11DeviceContext* ctx,
-        int srvSlot, int samplerSlot)
+    void PointShadowMap::BindForSampling(ID3D11DeviceContext* ctx, int srvSlot, int samplerSlot)
     {
+        if (!ctx) return;
+
         ctx->PSSetShaderResources(srvSlot, 1, m_srv.GetAddressOf());
         ctx->PSSetSamplers(samplerSlot, 1, m_sampler.GetAddressOf());
     }
 
-    XMMATRIX PointShadowMap::GetFaceMatrix(int light, int face) const
+    XMMATRIX PointShadowMap::GetFaceMatrix(int l, int f) const
     {
-        return m_faceMatrices[light * 6 + face];
+        if (l < 0 || l >= m_maxLights || f < 0 || f >= 6)
+            return XMMatrixIdentity();
+        return m_faceMatrices[l * 6 + f];
     }
 
-    float PointShadowMap::GetLightRadius(int light) const
+    XMFLOAT3 PointShadowMap::GetLightPosition(int l) const
     {
-        return m_lights[light].radius;
+        if (l < 0 || l >= m_maxLights) return {};
+        return m_lights[l].position;
     }
 
-    XMFLOAT3 PointShadowMap::GetLightPosition(int light) const
+    float PointShadowMap::GetLightRadius(int l) const
     {
-        return m_lights[light].position;
+        if (l < 0 || l >= m_maxLights) return 0.0f;
+        return m_lights[l].radius;
     }
 
     void PointShadowMap::Shutdown()
     {
-        m_colorCubeArray.Reset();
+        m_colorTex.Reset();
         m_srv.Reset();
         m_sampler.Reset();
-        m_depthBuffer.Reset();
+        m_rtvs.clear();
+        m_depthTex.Reset();
         m_depthDSV.Reset();
         m_depthStencilState.Reset();
         m_rasterizerState.Reset();
-        m_rtvs.clear();
+
         LOG_INFO("PointShadowMap shut down.");
     }
 }

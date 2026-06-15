@@ -48,48 +48,47 @@ cbuffer ShadowBuffer : register(b4)
 
 cbuffer PointShadowDataBuffer : register(b5)
 {
-    float4 PointShadowData[4]; // xyz=position, w=radius (-1 = no shadow)
-    int PointShadowCount;
-    float PointShadowBias;
-    int PoissonSamples; // 8 or 16
-    float _padPS;
+    float4 PointShadowData[4]; // xyz=lightPos, w=radius
+    int    PointShadowCount;
+    float  PointShadowBias;
+    float2 _padPS;
 };
 
-Texture2D g_albedoMap : register(t0);
-Texture2D g_normalMap : register(t1);
-Texture2D g_specularMap : register(t2); // also metallic-roughness (GLTF)
-Texture2D g_glossMap : register(t3);
-Texture2D g_shadowMap : register(t5);
+Texture2D g_albedoMap   : register(t0);
+Texture2D g_normalMap   : register(t1);
+Texture2D g_specularMap : register(t2);
+Texture2D g_glossMap    : register(t3);
+Texture2D g_shadowMap   : register(t5);
 TextureCubeArray g_pointShadowMaps : register(t6);
-SamplerState g_pointSampler : register(s2);
 
-SamplerState g_sampler : register(s0);
-SamplerComparisonState g_shadowSampler : register(s1);
+SamplerState           g_sampler         : register(s0);
+SamplerComparisonState g_shadowSampler   : register(s1);
+SamplerComparisonState g_pointShadowSamp : register(s2);
 
 struct VSInput
 {
     float3 Position : POSITION;
-    float3 Normal : NORMAL;
+    float3 Normal   : NORMAL;
     float2 TexCoord : TEXCOORD;
 };
 
 struct VSOutput
 {
-    float4 Position : SV_POSITION;
-    float3 WorldPos : WORLDPOS;
-    float3 Normal : NORMAL;
-    float2 TexCoord : TEXCOORD;
-    float4 LightSpacePos : LIGHTSPACEPOS;
+    float4 Position     : SV_POSITION;
+    float3 WorldPos     : WORLDPOS;
+    float3 Normal       : NORMAL;
+    float2 TexCoord     : TEXCOORD;
+    float4 LightSpacePos: LIGHTSPACEPOS;
 };
 
 VSOutput VS_Main(VSInput input)
 {
     VSOutput output;
-    float4 worldPos = mul(float4(input.Position, 1.0f), World);
-    output.WorldPos = worldPos.xyz;
-    output.Position = mul(float4(input.Position, 1.0f), WorldViewProjection);
-    output.Normal = normalize(mul(input.Normal, (float3x3) World));
-    output.TexCoord = input.TexCoord;
+    float4 worldPos      = mul(float4(input.Position, 1.0f), World);
+    output.WorldPos      = worldPos.xyz;
+    output.Position      = mul(float4(input.Position, 1.0f), WorldViewProjection);
+    output.Normal        = normalize(mul(input.Normal, (float3x3)World));
+    output.TexCoord      = input.TexCoord;
     output.LightSpacePos = mul(worldPos, LightSpaceMatrix);
     return output;
 }
@@ -130,23 +129,21 @@ float3 CookTorrance(float3 N, float3 V, float3 L,
                     float3 albedo, float metallic, float roughness,
                     float3 lightColor, float lightIntensity)
 {
-    float3 H = normalize(V + L);
+    float3 H  = normalize(V + L);
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
-    float D = NDF_GGX(N, H, roughness);
-    float G = Geometry_Smith(N, V, L, roughness);
-    float3 F = Fresnel_Schlick(max(dot(H, V), 0.0f), F0);
+    float  D  = NDF_GGX(N, H, roughness);
+    float  G  = Geometry_Smith(N, V, L, roughness);
+    float3 F  = Fresnel_Schlick(max(dot(H, V), 0.0f), F0);
     float NdotL = max(dot(N, L), 0.0f);
     float NdotV = max(dot(N, V), 0.0f);
     float3 specular = (D * G * F) / max(4.0f * NdotV * NdotL, 0.001f);
     float3 kD = (float3(1.0f, 1.0f, 1.0f) - F) * (1.0f - metallic);
-    float3 diffuse = kD * albedo / PI;
-    return (diffuse + specular) * lightColor * lightIntensity * NdotL;
+    return (kD * albedo / PI + specular) * lightColor * lightIntensity * NdotL;
 }
 
 float SampleShadowPCF(float4 lightSpacePos, float3 N, float3 L)
 {
     float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
-
     float2 uv;
     uv.x = projCoords.x * 0.5f + 0.5f;
     uv.y = -projCoords.y * 0.5f + 0.5f;
@@ -156,74 +153,43 @@ float SampleShadowPCF(float4 lightSpacePos, float3 N, float3 L)
         projCoords.z > 1.0f)
         return 1.0f;
 
-    // Slope-scaled bias — steeper surfaces get more bias
-    float bias = max(ShadowBias * (1.0f - dot(N, L)), ShadowBias * 0.1f);
+    float bias  = max(ShadowBias * (1.0f - dot(N, L)), ShadowBias * 0.1f);
     float depth = projCoords.z - bias;
 
     float shadow = 0.0f;
-    float count = 0.0f;
-
+    float count  = 0.0f;
     for (int x = -PCFRadius; x <= PCFRadius; x++)
+    for (int y = -PCFRadius; y <= PCFRadius; y++)
     {
-        for (int y = -PCFRadius; y <= PCFRadius; y++)
-        {
-            float2 offset = float2(x, y) * TexelSize;
-            shadow += g_shadowMap.SampleCmpLevelZero(
-                g_shadowSampler, uv + offset, depth);
-            count += 1.0f;
-        }
+        shadow += g_shadowMap.SampleCmpLevelZero(
+            g_shadowSampler, uv + float2(x, y) * TexelSize, depth);
+        count += 1.0f;
     }
-
     return count > 0.0f ? shadow / count : 1.0f;
 }
 
-// 16-sample Poisson disk on unit sphere
-static const float3 s_poissonSphere[16] =
-{
-    float3(0.3568, 0.6425, -0.6831),
-    float3(-0.6820, -0.1565, 0.7143),
-    float3(0.7323, -0.6105, 0.3012),
-    float3(-0.1902, 0.8945, -0.4031),
-    float3(0.5765, 0.4032, 0.7123),
-    float3(-0.7645, 0.5901, 0.2543),
-    float3(0.2103, -0.9432, 0.2561),
-    float3(-0.4312, -0.7821, -0.4521),
-    float3(0.8901, 0.2341, -0.3912),
-    float3(-0.2341, 0.3012, 0.9234),
-    float3(0.4532, -0.3421, -0.8234),
-    float3(-0.8123, -0.4012, 0.4231),
-    float3(0.1234, 0.9812, 0.1432),
-    float3(-0.5432, 0.1234, -0.8301),
-    float3(0.7812, -0.4321, 0.4512),
-    float3(-0.3210, 0.7654, 0.5543)
-};
-
-float SamplePointShadow(int lightIndex, float3 worldPos,
-                         float3 lightPos, float lightRadius)
+float SamplePointShadow(int idx, float3 worldPos,
+                         float3 lightPos, float radius)
 {
     float3 toFrag = worldPos - lightPos;
-    float currentDist = length(toFrag) / lightRadius;
+    float dist = length(toFrag);
 
-    if (currentDist >= 0.99f)
+    if (dist >= radius * 0.99f)
         return 1.0f;
 
-    float3 sampleDir = normalize(toFrag);
-    float shadow = 0.0f;
-    float diskRadius = 0.005f;
+    float near_ = 0.05f;
+    float far_ = radius;
+    float A = far_ / (far_ - near_);
+    float B = -(far_ * near_) / (far_ - near_);
+    float depthNDC = A + B / dist;
 
-    for (int i = 0; i < PoissonSamples; i++)
-    {
-        float3 offset = s_poissonSphere[i] * diskRadius;
-        float3 sampleDir2 = normalize(sampleDir + offset);
-        float storedDepth = g_pointShadowMaps.Sample(
-            g_pointSampler,
-            float4(sampleDir2, (float) lightIndex)).r;
-
-        shadow += (currentDist > storedDepth + PointShadowBias)
-                  ? 0.0f : 1.0f;
-    }
-
-    return shadow / (float) PoissonSamples;
+    // SampleCmpLevelZero: returns 1 if stored >= cmp, 0 if stored < cmp
+    // We pass depthNDC directly — no manual bias needed,
+    // the rasterizer DepthBias=2000 handles it on the shadow pass side
+    return g_pointShadowMaps.SampleCmpLevelZero(
+        g_pointShadowSamp,
+        float4(normalize(toFrag), (float) idx),
+        depthNDC);
 }
 
 float4 PS_Main(VSOutput input) : SV_TARGET
@@ -231,22 +197,18 @@ float4 PS_Main(VSOutput input) : SV_TARGET
     float3 N = normalize(input.Normal);
     float3 V = normalize(CameraPosition - input.WorldPos);
 
-    float3 albedo = Albedo;
-    float roughness = Roughness;
-    float metallic = Metallic;
+    float3 albedo    = Albedo;
+    float  roughness = Roughness;
+    float  metallic  = Metallic;
 
     if (UseAlbedoMap)
         albedo = g_albedoMap.Sample(g_sampler, input.TexCoord).rgb;
 
     if (UseSpecularMap)
     {
-        // Handles both GLTF metallic-roughness (G=rough, B=metallic)
-        // and plain specular workflow (R=metallic)
         float4 mr = g_specularMap.Sample(g_sampler, input.TexCoord);
         roughness = mr.g;
-        metallic = mr.b;
-        // If it looks like a plain specular map (all channels similar)
-        // fall back to using R as metallic
+        metallic  = mr.b;
         if (abs(mr.g - mr.b) < 0.01f && mr.r > 0.0f)
             metallic = mr.r;
     }
@@ -254,45 +216,42 @@ float4 PS_Main(VSOutput input) : SV_TARGET
     if (UseGlossinessMap)
         roughness = 1.0f - g_glossMap.Sample(g_sampler, input.TexCoord).r;
 
-    float3 L = normalize(-DirLightDirection);
+    float3 L          = normalize(-DirLightDirection);
     float shadowFactor = SampleShadowPCF(input.LightSpacePos, N, L);
 
-    float3 Lo = float3(0.0f, 0.0f, 0.0f);
-
-    // Directional light — shadowed
-    Lo += CookTorrance(N, V, L, albedo, metallic, roughness,
-                       DirLightColor, DirLightIntensity) * shadowFactor;
+    float3 Lo = CookTorrance(N, V, L, albedo, metallic, roughness,
+                             DirLightColor, DirLightIntensity) * shadowFactor;
 
     for (int i = 0; i < PointLightCount; i++)
     {
-        float3 lightPos = PointLightPositionRadius[i].xyz;
-        float lightRadius = PointLightPositionRadius[i].w;
-        float3 lightColor = PointLightColorIntensity[i].xyz;
-        float lightIntens = PointLightColorIntensity[i].w;
+        float3 lpos    = PointLightPositionRadius[i].xyz;
+        float  lrad    = PointLightPositionRadius[i].w;
+        float3 lcol    = PointLightColorIntensity[i].xyz;
+        float  lintens = PointLightColorIntensity[i].w;
 
-        float3 toLight = lightPos - input.WorldPos;
-        float distance = length(toLight);
-        float3 Lp = normalize(toLight);
-        float att = 1.0f / (distance * distance + 0.001f);
-        float rf = saturate(1.0f - distance / lightRadius);
+        float3 toLight = lpos - input.WorldPos;
+        float  d       = length(toLight);
+        float3 Lp      = normalize(toLight);
+        float  att     = 1.0f / (d * d + 0.001f);
+        float  rf      = saturate(1.0f - d / lrad);
         att *= rf * rf;
 
         float pointShadow = 1.0f;
         if (i < PointShadowCount && PointShadowData[i].w > 0.0f)
         {
-            pointShadow = SamplePointShadow(i, input.WorldPos,
-                                         PointShadowData[i].xyz,
-                                         PointShadowData[i].w);
+            pointShadow = SamplePointShadow(
+                i, input.WorldPos,
+                PointShadowData[i].xyz,
+                PointShadowData[i].w);
         }
 
         Lo += CookTorrance(N, V, Lp, albedo, metallic, roughness,
-                       lightColor, lightIntens * att) * pointShadow;
+                           lcol, lintens * att) * pointShadow;
     }
 
     float3 ambient = 0.08f * albedo * AmbientOcclusion;
-    float3 color = ambient + Lo;
+    float3 color   = ambient + Lo;
     color = color / (color + 1.0f);
     color = pow(color, 1.0f / 2.2f);
-
     return float4(color, 1.0f);
 }

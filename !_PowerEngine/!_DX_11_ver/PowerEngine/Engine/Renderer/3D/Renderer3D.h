@@ -42,15 +42,18 @@ namespace Engine
 
         void BeginPointShadowPass();
         void EndPointShadowPass();
-        void SetPointShadowQuality(PointShadowQuality quality);
-        PointShadowQuality GetPointShadowQuality() const
-        {
-            return m_pointShadowMap.GetQuality();
-        }
-        void EnablePointShadows(bool enabled) { m_pointShadowsEnabled = enabled; }
         void RenderPointShadowFace(int lightIndex, int face);
 
-        // Draw with explicit material (primitives, FBX with separate textures)
+        void SetPointShadowQuality(PointShadowQuality quality);
+        PointShadowQuality GetPointShadowQuality() const { return m_pointShadowMap.GetQuality(); }
+
+        void EnablePointShadows(bool enabled) { m_pointShadowsEnabled = enabled; }
+        void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
+
+        bool ShadowsEnabled() const { return m_shadowsEnabled; }
+        bool PointShadowsEnabled() const { return m_pointShadowsEnabled; }
+
+        // Draw with explicit material
         void DrawMesh(const Mesh& mesh,
             const DirectX::XMMATRIX& worldMatrix,
             const Material& material = Material{});
@@ -61,30 +64,24 @@ namespace Engine
             float scaleX = 1, float scaleY = 1, float scaleZ = 1,
             const Material& material = Material{});
 
-        // Draw using embedded material data (GLTF, multi-material FBX)
+        // Draw using embedded materials (GLTF, FBX, etc.)
         void DrawMeshAuto(const Mesh& mesh,
             const DirectX::XMMATRIX& worldMatrix);
 
-        void EnableShadows(bool enabled) { m_shadowsEnabled = enabled; }
-        bool ShadowsEnabled()        const { return m_shadowsEnabled; }
-
-        // Shadow quality — reinitializes shadow map texture
-        void          SetShadowQuality(ShadowQuality quality);
+        void SetShadowQuality(ShadowQuality quality);
         ShadowQuality GetShadowQuality() const { return m_shadowMap.GetQuality(); }
 
         void DebugDrawShadowMap(Renderer2D& renderer2D);
         void OnResize(float aspectRatio);
 
     private:
-        void       UpdateLightBuffer();
+        void UpdateLightBuffer();
         Texture2D* GetOrLoadTexture(const std::string& path);
         Texture2D* ResolveTexture(const std::shared_ptr<Texture2D>& direct,
             const std::string& path);
-        void       BindMaterialAndDraw(const Mesh& mesh, int subMeshIndex,
-            const MeshMaterial& meshMat);
 
         RenderContext* m_context = nullptr;
-        Shader                          m_shader;
+        Shader         m_shader;
 
         ComPtr<ID3D11Buffer>            m_cbPerObject;
         ComPtr<ID3D11Buffer>            m_cbPerFrame;
@@ -92,6 +89,8 @@ namespace Engine
         ComPtr<ID3D11Buffer>            m_cbMaterial;
         ComPtr<ID3D11Buffer>            m_cbShadow;
         ComPtr<ID3D11Buffer>            m_cbShadowPass;
+        ComPtr<ID3D11Buffer>            m_cbPointShadow;
+        ComPtr<ID3D11Buffer>            m_cbPointShadowPass;
         ComPtr<ID3D11InputLayout>       m_inputLayout;
         ComPtr<ID3D11RasterizerState>   m_rasterizerState;
         ComPtr<ID3D11DepthStencilState> m_depthStencilState;
@@ -105,20 +104,18 @@ namespace Engine
         std::vector<PointLight>         m_pointLights;
 
         ShadowMap                       m_shadowMap;
+        PointShadowMap                  m_pointShadowMap;
+
         RenderPass                      m_currentPass = RenderPass::Main;
         bool                            m_shadowsEnabled = true;
-
-        PointShadowMap                  m_pointShadowMap;
-        ComPtr<ID3D11Buffer>            m_cbPointShadow;
-        ComPtr<ID3D11Buffer>            m_cbPointShadowPass;
         bool                            m_pointShadowsEnabled = true;
 
-        int m_activeShadowLight = 0;
-        int m_activeShadowFace = 0;
-        bool m_inPointShadowPass = false;
+        // Point shadow rendering state
+        bool                            m_inPointShadowPass = false;
+        int                             m_activeShadowLight = 0;
+        int                             m_activeShadowFace = 0;
 
-        std::unordered_map<std::string,
-            std::shared_ptr<Texture2D>> m_textureCache;
+        std::unordered_map<std::string, std::shared_ptr<Texture2D>> m_textureCache;
         std::shared_ptr<Texture2D>      m_whiteTexture;
     };
 }

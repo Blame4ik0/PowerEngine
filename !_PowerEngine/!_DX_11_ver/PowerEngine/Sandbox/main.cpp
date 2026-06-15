@@ -23,6 +23,10 @@
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
 
+// Force discrete GPU on laptops with both Intel and NVIDIA/AMD
+extern "C" { __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; }
+extern "C" { __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1; }
+
 int main()
 {
     const std::string ASSETS = "../../../../../../!_ASSETS/";
@@ -86,6 +90,11 @@ int main()
 
     float fov = 60.0f;
     float lightIntensity = 3.0f;
+    bool showInfo = false;
+    bool showCrosshair = false;
+    bool showGrid = true;
+    bool showShadows = true;
+    int shadowQuality = 3;
 
     Engine::Camera3D camera3D;
     camera3D.SetPosition(0.0f, 2.0f, -5.0f);
@@ -95,6 +104,7 @@ int main()
         0.1f, 1000.0f);
 
     // ---- Models ----
+ 
     //Engine::Mesh f1;
     //bool f1Loaded = f1.Load(renderer.GetDevice(),
     //    MODELS + "formula_1/f1_mesh.obj");
@@ -102,19 +112,19 @@ int main()
     //f1.SetPosition(0.0f, 0.3f, 0.0f);
     //f1.SetScale(0.01f);
 
-    Engine::Mesh sword;
-	bool swordLoaded = sword.Load(renderer.GetDevice(),
-		MODELS + "sword/sword.glb");
-	if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
-	sword.SetPosition(0.0f, 1.8f, 0.0f);
-	sword.SetScale(0.03f);
+    //Engine::Mesh sword;
+	//bool swordLoaded = sword.Load(renderer.GetDevice(),
+	//	MODELS + "sword/sword.glb");
+	//if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
+	//sword.SetPosition(0.0f, 1.8f, 0.0f);
+	//sword.SetScale(0.03f);
 
- //   Engine::Mesh angel;
+    //Engine::Mesh angel;
 	//bool angelLoaded = angel.Load(renderer.GetDevice(),
- //       MODELS + "angel/scene.gltf");
+    //    MODELS + "angel/scene.gltf");
 	//if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
 	//angel.SetPosition(0.0f, 0.1f, 0.0f);
- //   angel.SetRotation(-90.0f, 180.0f, 0.0f);
+    //angel.SetRotation(-90.0f, 180.0f, 0.0f);
 	//angel.SetScale(0.4f);
 
     Engine::Mesh bulb;
@@ -123,38 +133,33 @@ int main()
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
 
-    //   Engine::Mesh container;
-    //   bool containerLoaded = container.Load(renderer.GetDevice(),
-    //       CONTAINER + "Container.fbx");
-    //   if (!containerLoaded) LOG_ERROR("Failed to load container model.");
-    //   container.SetPosition(0.0f, 2.0f, 0.0f);
+    //Engine::Mesh container;
+    //bool containerLoaded = container.Load(renderer.GetDevice(),
+    //    CONTAINER + "Container.fbx");
+    //if (!containerLoaded) LOG_ERROR("Failed to load container model.");
+    //container.SetPosition(0.0f, 2.0f, 0.0f);
 	//container.SetRotation(0.0f, 0.0f, 90.0f);
-    //   container.SetScale(0.01f);
+    //container.SetScale(0.01f);
 
-       Engine::Mesh knight;
+    Engine::Mesh knight;
 	bool knightLoaded = knight.Load(renderer.GetDevice(),
 		MODELS + "knight/scene.gltf");
 	if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
 	knight.SetPosition(0.0f, 0.1f, 0.0f);
 	knight.SetScale(0.08f);
-       knight.SetRotation(180.0f, 0.0f, 0.0f);
+    knight.SetRotation(180.0f, 0.0f, 0.0f);
 
     Engine::Mesh floor;
 	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
 	floor.SetPosition(0.0f, 0.0f, 0.0f);
 
     // ---- Timer & Input ----
+
     Engine::Timer timer;
     timer.Reset();
 
     Engine::InputManager::Init();
     Engine::GamepadManager::Init();
-
-    bool showInfo = false;
-    bool showCrosshair = false;
-    bool showGrid = true;
-    bool showShadows = true;
-	int shadowQuality = 3;
 
     LOG_INFO("Entering main loop.");
 
@@ -252,20 +257,20 @@ int main()
         Engine::DirectionalLight sun;
         sun.Direction = { 0.5f, -1.0f, 0.3f };
         sun.Color = { 1.0f, 0.95f, 0.9f };
-        sun.Intensity = lightIntensity;
+        sun.Intensity = 0;
         renderer3D.SetDirectionalLight(sun);
 
         Engine::PointLight redLight;
         redLight.Position = { 3.0f, 2.0f, 0.0f };
         redLight.Color = { 1.0f, 0.2f, 0.1f };
-        redLight.Intensity = 30.0f * lightIntensity;
-        redLight.Radius = 10.0f;
+        redLight.Intensity = 400.0f * lightIntensity;
+        redLight.Radius = 15.0f;
 
         Engine::PointLight blueLight;
         blueLight.Position = { -3.0f, 2.0f, 0.0f };
         blueLight.Color = { 0.1f, 0.4f,  1.0f };
-        blueLight.Intensity = 30.0f * lightIntensity;
-        blueLight.Radius = 10.0f;
+        blueLight.Intensity = 400.0f * lightIntensity;
+        blueLight.Radius = 15.0f;
 
         renderer3D.ClearPointLights();
         renderer3D.AddPointLight(redLight);
@@ -288,7 +293,7 @@ int main()
         //containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
 
 		//Engine::Material knightMat;
-  //      knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
+        //knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
 		//knightMat.Metallic = 0.0f;
 		//knightMat.Roughness = 0.5f;
 		//knightMat.AlbedoMap = MODELS + "knight/textures/diffuse.png";
@@ -328,8 +333,8 @@ int main()
         //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
         //if (swordLoaded)
         //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-  //      if (containerLoaded)
-  //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+        //if (containerLoaded)
+        //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
 		if (knightLoaded)
 			renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
         renderer3D.EndShadowPass();
@@ -342,15 +347,14 @@ int main()
             {
                 renderer3D.RenderPointShadowFace(light, face);
                 renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-
                 //if (angelLoaded)
-        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
+                //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
                 //if (f1Loaded)
                 //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
                 //if (swordLoaded)
                 //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-          //      if (containerLoaded)
-          //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+                //if (containerLoaded)
+                //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
                 if (knightLoaded)
                     renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
             }
@@ -365,10 +369,10 @@ int main()
         //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
         //if (f1Loaded)
         //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-		//if (swordLoaded)
-		//	renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-  //      if (containerLoaded)
-  //          //renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
+        //if (swordLoaded)
+        //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
+        //if (containerLoaded)
+        //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
         if (knightLoaded)
             renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
         if (bulbLoaded)

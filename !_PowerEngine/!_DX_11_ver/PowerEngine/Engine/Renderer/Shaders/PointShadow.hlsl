@@ -1,9 +1,9 @@
-cbuffer PointShadowBuffer : register(b0)
+cbuffer PointShadowPass : register(b0)
 {
-    row_major float4x4 FaceMatrix;
+    row_major float4x4 FaceViewProj;
+    row_major float4x4 World;
     float3 LightPos;
     float LightRadius;
-    row_major float4x4 World;
 };
 
 struct VSInput
@@ -21,16 +21,15 @@ struct VSOutput
 
 VSOutput VS_Main(VSInput input)
 {
-    VSOutput output;
+    VSOutput o;
     float4 worldPos = mul(float4(input.Position, 1.0f), World);
-    output.WorldPos = worldPos.xyz;
-    output.Position = mul(worldPos, FaceMatrix);
-    return output;
+    o.WorldPos = worldPos.xyz;
+    o.Position = mul(worldPos, FaceViewProj);
+    return o;
 }
 
 float4 PS_Main(VSOutput input) : SV_TARGET
 {
-    // Store normalized linear distance — no hardware depth issues
     float dist = length(input.WorldPos - LightPos) / LightRadius;
     return float4(dist, dist, dist, 1.0f);
 }

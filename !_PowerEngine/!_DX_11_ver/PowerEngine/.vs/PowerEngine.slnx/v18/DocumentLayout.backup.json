@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sandbox\\main.cpp||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sandbox\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\3D\\PointShadowMap.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\3D\\PointShadowMap.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -15,16 +23,12 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shaders\\Mesh.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\PointShadow.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shaders\\PointShadow.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\3D\\PointShadowMap.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\3D\\PointShadowMap.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Engine\\Renderer\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -48,85 +52,97 @@
               "RelativeDocumentMoniker": "Sandbox\\main.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Sandbox\\main.cpp",
               "RelativeToolTip": "Sandbox\\main.cpp",
-              "ViewState": "AgIAAGYBAAAAAAAAAAAQwHQBAABFAAAAAAAAAA==",
+              "ViewState": "AgIAAMUBAAAAAAAAAAAAAA8BAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-07T14:26:03.101Z",
+              "WhenOpened": "2026-06-15T08:26:11.711Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 6,
+              "Title": "Shader.cpp",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp",
+              "RelativeDocumentMoniker": "Engine\\Renderer\\Shader.cpp",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.cpp",
+              "RelativeToolTip": "Engine\\Renderer\\Shader.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-06-10T08:44:51.803Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Shader.h",
+              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h",
+              "RelativeDocumentMoniker": "Engine\\Renderer\\Shader.h",
+              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shader.h",
+              "RelativeToolTip": "Engine\\Renderer\\Shader.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-06-10T08:44:50.955Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Renderer3D.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.cpp",
               "RelativeDocumentMoniker": "Engine\\Renderer\\3D\\Renderer3D.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.cpp",
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.cpp",
-              "ViewState": "AgIAAHgBAAAAAAAAAAAowLYBAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAIMCAAAAAAAAAAAAAKcCAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-06-07T13:28:47.322Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Renderer3D.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.h",
               "RelativeDocumentMoniker": "Engine\\Renderer\\3D\\Renderer3D.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\Renderer3D.h",
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.h",
-              "ViewState": "AgIAACQAAAAAAAAAAAAAADMAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAhwBwAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-07T13:28:46.697Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-07T13:28:46.697Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Mesh.hlsl",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\Mesh.hlsl",
               "RelativeDocumentMoniker": "Engine\\Renderer\\Shaders\\Mesh.hlsl",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\Mesh.hlsl",
               "RelativeToolTip": "Engine\\Renderer\\Shaders\\Mesh.hlsl",
-              "ViewState": "AgIAAMIAAAAAAAAAAAAAAOIAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAJ4AAAAAAAAAAAAAAMAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-06-07T13:27:30.735Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "PointShadow.hlsl",
-              "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\PointShadow.hlsl",
-              "RelativeDocumentMoniker": "Engine\\Renderer\\Shaders\\PointShadow.hlsl",
-              "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\Shaders\\PointShadow.hlsl",
-              "RelativeToolTip": "Engine\\Renderer\\Shaders\\PointShadow.hlsl",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-06-07T13:26:30.532Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 1,
               "Title": "PointShadowMap.cpp",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.cpp",
               "RelativeDocumentMoniker": "Engine\\Renderer\\3D\\PointShadowMap.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.cpp",
               "RelativeToolTip": "Engine\\Renderer\\3D\\PointShadowMap.cpp",
-              "ViewState": "AgIAAAYBAAAAAAAAAAAAADABAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAPQAAAAAAAAAAAAAAB4BAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-06-07T13:26:21.214Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 2,
               "Title": "PointShadowMap.h",
               "DocumentMoniker": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.h",
               "RelativeDocumentMoniker": "Engine\\Renderer\\3D\\PointShadowMap.h",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Engine\\Renderer\\3D\\PointShadowMap.h",
               "RelativeToolTip": "Engine\\Renderer\\3D\\PointShadowMap.h",
-              "ViewState": "AgIAADIAAAAAAAAAAAAAAFwAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAADMAAAAAAAAAAAAAAF0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-06-07T13:26:15.698Z",
               "EditorCaption": ""
