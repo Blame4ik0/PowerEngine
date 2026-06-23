@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-    bool Font::Load(ID3D11Device* device,
+    bool Font::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
         const std::string& filepath,
         float fontSize)
     {
@@ -66,7 +66,7 @@ namespace Engine
         }
 
         // ---- Upload atlas to GPU via Texture2D ----
-        if (!m_atlas.LoadFromMemory(device, rgba.data(), AtlasSize, AtlasSize))
+        if (!m_atlas.LoadFromMemory(device, ctx, rgba.data(), AtlasSize, AtlasSize))
         {
             LOG_ERROR("Font: failed to upload atlas texture.");
             return false;

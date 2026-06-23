@@ -15,6 +15,7 @@
     "",
     "\\Engine",
     "\\Engine\\Renderer",
+    "\\Engine\\Renderer\\2D",
     "\\Engine\\Renderer\\3D",
     "\\Engine\\Renderer\\Shaders",
     "\\Sandbox"

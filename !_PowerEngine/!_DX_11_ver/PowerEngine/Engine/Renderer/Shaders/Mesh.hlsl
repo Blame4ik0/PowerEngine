@@ -2,6 +2,8 @@ cbuffer PerObjectBuffer : register(b0)
 {
     row_major float4x4 World;
     row_major float4x4 WorldViewProjection;
+    row_major float4x4 ViewMatrix;
+    row_major float4x4 ProjectionMatrix;
 };
 
 cbuffer PerFrameBuffer : register(b1)
@@ -67,9 +69,16 @@ SamplerComparisonState g_pointShadowSamp : register(s2);
 
 struct VSInput
 {
+    // Slot 0 — per-vertex
     float3 Position : POSITION;
     float3 Normal   : NORMAL;
     float2 TexCoord : TEXCOORD;
+    float3 Tangent  : TANGENT;
+    // Slot 1 — per-instance world matrix rows (zero when not instancing)
+    float4 InstRow0 : INSTANCEWORLD0;
+    float4 InstRow1 : INSTANCEWORLD1;
+    float4 InstRow2 : INSTANCEWORLD2;
+    float4 InstRow3 : INSTANCEWORLD3;
 };
 
 struct VSOutput
@@ -79,17 +88,49 @@ struct VSOutput
     float3 Normal       : NORMAL;
     float2 TexCoord     : TEXCOORD;
     float4 LightSpacePos: LIGHTSPACEPOS;
+    float3 Tangent      : TANGENT;
+    float3 Bitangent    : BITANGENT;
 };
 
 VSOutput VS_Main(VSInput input)
 {
+    // Detect instancing: if any instance row is non-zero, use it
+    float instMag = dot(input.InstRow0, 1) + dot(input.InstRow1, 1)
+                  + dot(input.InstRow2, 1) + dot(input.InstRow3, 1);
+    bool useInst = (instMag != 0.0f);
+
+    float4x4 W = World;
+    float4 outPos;
+    if (useInst)
+    {
+        // Instance matrix stored row-major — transpose to get column-major
+        W = transpose(float4x4(
+                input.InstRow0, input.InstRow1,
+                input.InstRow2, input.InstRow3));
+        outPos = mul(mul(float4(input.Position, 1.0f), W),
+                     mul(ViewMatrix, ProjectionMatrix));
+    }
+    else
+    {
+        outPos = mul(float4(input.Position, 1.0f), WorldViewProjection);
+    }
+
     VSOutput output;
-    float4 worldPos      = mul(float4(input.Position, 1.0f), World);
+    float4 worldPos      = mul(float4(input.Position, 1.0f), W);
     output.WorldPos      = worldPos.xyz;
-    output.Position      = mul(float4(input.Position, 1.0f), WorldViewProjection);
-    output.Normal        = normalize(mul(input.Normal, (float3x3)World));
+    output.Position      = outPos;
     output.TexCoord      = input.TexCoord;
     output.LightSpacePos = mul(worldPos, LightSpaceMatrix);
+
+    float3x3 W3 = (float3x3)W;
+    float3 N = normalize(mul(input.Normal,  W3));
+    float3 T = normalize(mul(input.Tangent, W3));
+    T = normalize(T - dot(T, N) * N);
+    float3 B = cross(N, T);
+
+    output.Normal    = N;
+    output.Tangent   = T;
+    output.Bitangent = B;
     return output;
 }
 
@@ -172,29 +213,41 @@ float SamplePointShadow(int idx, float3 worldPos,
                          float3 lightPos, float radius)
 {
     float3 toFrag = worldPos - lightPos;
-    float dist = length(toFrag);
+    float  dist   = length(toFrag);
 
-    if (dist >= radius * 0.99f)
-        return 1.0f;
+    if (dist >= radius) return 1.0f;
 
-    float near_ = 0.05f;
-    float far_ = radius;
-    float A = far_ / (far_ - near_);
-    float B = -(far_ * near_) / (far_ - near_);
+    // Reconstruct the NDC depth that XMMatrixPerspectiveFovLH stored.
+    // For near=0.05, far=radius:
+    //   A = far / (far - near)
+    //   B = -far * near / (far - near)
+    //   depth_ndc = A + B / z
+    float near_    = 0.05f;
+    float far_     = radius;
+    float A        = far_ / (far_ - near_);
+    float B        = -(far_ * near_) / (far_ - near_);
     float depthNDC = A + B / dist;
 
-    // SampleCmpLevelZero: returns 1 if stored >= cmp, 0 if stored < cmp
-    // We pass depthNDC directly — no manual bias needed,
-    // the rasterizer DepthBias=2000 handles it on the shadow pass side
     return g_pointShadowMaps.SampleCmpLevelZero(
         g_pointShadowSamp,
-        float4(normalize(toFrag), (float) idx),
-        depthNDC);
+        float4(normalize(toFrag), (float)idx),
+        depthNDC - PointShadowBias);
 }
 
 float4 PS_Main(VSOutput input) : SV_TARGET
 {
     float3 N = normalize(input.Normal);
+
+    if (UseNormalMap)
+    {
+        float3 normalSample = g_normalMap.Sample(g_sampler, input.TexCoord).rgb;
+        normalSample = normalSample * 2.0f - 1.0f; // [0,1] -> [-1,1]
+        float3 T = normalize(input.Tangent);
+        float3 B = normalize(input.Bitangent);
+        float3x3 TBN = float3x3(T, B, N);
+        N = normalize(mul(normalSample, TBN));
+    }
+
     float3 V = normalize(CameraPosition - input.WorldPos);
 
     float3 albedo    = Albedo;

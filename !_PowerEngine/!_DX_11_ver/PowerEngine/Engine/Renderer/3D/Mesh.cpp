@@ -46,6 +46,44 @@ namespace Engine
             * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
     }
 
+    // ---- AABB ----
+
+    void AABB::GetCorners(const XMMATRIX& world, XMFLOAT3 out[8]) const
+    {
+        XMFLOAT3 corners[8] =
+        {
+            { min.x, min.y, min.z }, { max.x, min.y, min.z },
+            { min.x, max.y, min.z }, { max.x, max.y, min.z },
+            { min.x, min.y, max.z }, { max.x, min.y, max.z },
+            { min.x, max.y, max.z }, { max.x, max.y, max.z },
+        };
+        for (int i = 0; i < 8; i++)
+        {
+            XMVECTOR v = XMVector3TransformCoord(
+                XMLoadFloat3(&corners[i]), world);
+            XMStoreFloat3(&out[i], v);
+        }
+    }
+
+    void Mesh::ComputeAABB(const std::vector<Vertex3D>& vertices)
+    {
+        m_aabb = {};
+        ExpandAABB(vertices);
+    }
+
+    void Mesh::ExpandAABB(const std::vector<Vertex3D>& vertices)
+    {
+        for (auto& v : vertices)
+        {
+            m_aabb.min.x = std::min(m_aabb.min.x, v.Position.x);
+            m_aabb.min.y = std::min(m_aabb.min.y, v.Position.y);
+            m_aabb.min.z = std::min(m_aabb.min.z, v.Position.z);
+            m_aabb.max.x = std::max(m_aabb.max.x, v.Position.x);
+            m_aabb.max.y = std::max(m_aabb.max.y, v.Position.y);
+            m_aabb.max.z = std::max(m_aabb.max.z, v.Position.z);
+        }
+    }
+
     // ---- Upload helpers ----
 
     bool Mesh::UploadSubMesh(ID3D11Device* device,
@@ -54,6 +92,8 @@ namespace Engine
         int materialIndex,
         SubMesh& out)
     {
+        ExpandAABB(vertices);
+
         D3D11_BUFFER_DESC vbDesc{};
         vbDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex3D) * vertices.size());
         vbDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -83,6 +123,8 @@ namespace Engine
         const std::vector<Vertex3D>& vertices,
         const std::vector<uint32_t>& indices)
     {
+        ComputeAABB(vertices);
+
         D3D11_BUFFER_DESC vbDesc{};
         vbDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex3D) * vertices.size());
         vbDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -105,11 +147,12 @@ namespace Engine
 
     // ---- Main loader ----
 
-    bool Mesh::Load(ID3D11Device* device,
+    bool Mesh::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
         const std::string& filepath,
         UVMode uvMode)
     {
         m_device = device;
+        m_aabb = {}; // reset — UploadSubMesh will accumulate bounds across all submeshes
 
         Assimp::Importer importer;
 
@@ -136,7 +179,7 @@ namespace Engine
         {
             aiTexture* aiTex = scene->mTextures[i];
             auto tex = std::make_shared<Texture2D>();
-            if (tex->LoadFromAssimp(device, aiTex))
+            if (tex->LoadFromAssimp(device, ctx, aiTex))
             {
                 EmbeddedTexture et;
                 et.name = aiTex->mFilename.C_Str();
@@ -180,7 +223,7 @@ namespace Engine
                     std::string fullPath = modelDir + path;
 
                     auto tex = std::make_shared<Texture2D>();
-                    if (tex->Load(device, fullPath))
+                    if (tex->Load(device, ctx, fullPath))
                         return tex;
 
                     LOG_WARN("Mesh: could not load external texture '{}'.", fullPath);
@@ -265,6 +308,8 @@ namespace Engine
                 v.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                 if (mesh->HasNormals())
                     v.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+                if (mesh->HasTangentsAndBitangents())
+                    v.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
                 if (mesh->mTextureCoords[0])
                 {
                     float u = mesh->mTextureCoords[0][i].x;
@@ -344,17 +389,48 @@ namespace Engine
         ctx->DrawIndexed(sub.indexCount, 0, 0);
     }
 
-    // ---- Primitive creation functions (unchanged) ----
+    // ---- Primitive creation functions ----
     bool Mesh::CreateCube(ID3D11Device* device, float s)
     {
-        // ... (same as before)
         float h = s * 0.5f;
-        std::vector<Vertex3D> vertices = { /* same cube data */ };
+        std::vector<Vertex3D> vertices =
+        {
+            // +Z  normal(0,0,1)   tangent(1,0,0)
+            {{-h,-h, h},{0,0,1},{0,1},{1,0,0}},
+            {{-h, h, h},{0,0,1},{0,0},{1,0,0}},
+            {{ h, h, h},{0,0,1},{1,0},{1,0,0}},
+            {{ h,-h, h},{0,0,1},{1,1},{1,0,0}},
+            // -Z  normal(0,0,-1)  tangent(-1,0,0)
+            {{ h,-h,-h},{0,0,-1},{0,1},{-1,0,0}},
+            {{ h, h,-h},{0,0,-1},{0,0},{-1,0,0}},
+            {{-h, h,-h},{0,0,-1},{1,0},{-1,0,0}},
+            {{-h,-h,-h},{0,0,-1},{1,1},{-1,0,0}},
+            // +X  normal(1,0,0)   tangent(0,0,-1)
+            {{ h,-h, h},{1,0,0},{0,1},{0,0,-1}},
+            {{ h, h, h},{1,0,0},{0,0},{0,0,-1}},
+            {{ h, h,-h},{1,0,0},{1,0},{0,0,-1}},
+            {{ h,-h,-h},{1,0,0},{1,1},{0,0,-1}},
+            // -X  normal(-1,0,0)  tangent(0,0,1)
+            {{-h,-h,-h},{-1,0,0},{0,1},{0,0,1}},
+            {{-h, h,-h},{-1,0,0},{0,0},{0,0,1}},
+            {{-h, h, h},{-1,0,0},{1,0},{0,0,1}},
+            {{-h,-h, h},{-1,0,0},{1,1},{0,0,1}},
+            // +Y  normal(0,1,0)   tangent(1,0,0)
+            {{-h, h, h},{0,1,0},{0,1},{1,0,0}},
+            {{-h, h,-h},{0,1,0},{0,0},{1,0,0}},
+            {{ h, h,-h},{0,1,0},{1,0},{1,0,0}},
+            {{ h, h, h},{0,1,0},{1,1},{1,0,0}},
+            // -Y  normal(0,-1,0)  tangent(1,0,0)
+            {{-h,-h,-h},{0,-1,0},{0,1},{1,0,0}},
+            {{-h,-h, h},{0,-1,0},{0,0},{1,0,0}},
+            {{ h,-h, h},{0,-1,0},{1,0},{1,0,0}},
+            {{ h,-h,-h},{0,-1,0},{1,1},{1,0,0}},
+        };
         std::vector<uint32_t> indices;
         for (uint32_t i = 0; i < 6; i++)
         {
             uint32_t b = i * 4;
-            indices.insert(indices.end(), { b, b + 1, b + 2, b, b + 2, b + 3 });
+            indices.insert(indices.end(), { b,b + 1,b + 2, b,b + 2,b + 3 });
         }
         m_hasSubMeshes = false;
         m_loaded = UploadSingle(device, vertices, indices);
@@ -364,14 +440,14 @@ namespace Engine
 
     bool Mesh::CreatePlane(ID3D11Device* device, float width, float height)
     {
-        // ... (same as before)
         float hw = width * 0.5f, hh = height * 0.5f;
+        // Tangent for a Y-up plane is +X
         std::vector<Vertex3D> vertices =
         {
-            {{ -hw, 0,-hh },{ 0,1,0 },{ 0,1 }},
-            {{ -hw, 0, hh },{ 0,1,0 },{ 0,0 }},
-            {{  hw, 0, hh },{ 0,1,0 },{ 1,0 }},
-            {{  hw, 0,-hh },{ 0,1,0 },{ 1,1 }},
+            {{ -hw, 0,-hh },{ 0,1,0 },{ 0,1 },{ 1,0,0 }},
+            {{ -hw, 0, hh },{ 0,1,0 },{ 0,0 },{ 1,0,0 }},
+            {{  hw, 0, hh },{ 0,1,0 },{ 1,0 },{ 1,0,0 }},
+            {{  hw, 0,-hh },{ 0,1,0 },{ 1,1 },{ 1,0,0 }},
         };
         std::vector<uint32_t> indices = { 0,1,2, 0,2,3 };
         m_hasSubMeshes = false;
@@ -382,10 +458,8 @@ namespace Engine
 
     bool Mesh::CreateSphere(ID3D11Device* device, float radius, int slices, int stacks)
     {
-        // ... (same as before - omitted for brevity, copy from your original if needed)
         std::vector<Vertex3D> vertices;
         std::vector<uint32_t> indices;
-        // (sphere generation code remains unchanged)
         for (int i = 0; i <= stacks; i++)
         {
             float phi = XM_PI * i / stacks;
@@ -396,6 +470,8 @@ namespace Engine
                 v.Position = { radius * sinf(phi) * cosf(theta), radius * cosf(phi), radius * sinf(phi) * sinf(theta) };
                 v.Normal = { sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta) };
                 v.TexCoord = { (float)j / slices, (float)i / stacks };
+                // Tangent = d(position)/d(theta), normalized
+                v.Tangent = { -sinf(theta), 0.f, cosf(theta) };
                 vertices.push_back(v);
             }
         }
@@ -412,5 +488,54 @@ namespace Engine
         m_loaded = UploadSingle(device, vertices, indices);
         if (m_loaded) LOG_INFO("Mesh: sphere created ({} slices, {} stacks).", slices, stacks);
         return m_loaded;
+    }
+
+    // ---- Material overrides ----
+
+    void Mesh::BindBuffers(ID3D11DeviceContext* ctx,
+        ID3D11Buffer* instanceBuffer,
+        int instanceCount) const
+    {
+        if (!m_vertexBuffer || !m_indexBuffer) return;
+
+        ID3D11Buffer* vbs[2] = { m_vertexBuffer.Get(), instanceBuffer };
+        UINT strides[2] = { sizeof(Vertex3D), sizeof(XMFLOAT4X4) };
+        UINT offsets[2] = { 0, 0 };
+        ctx->IASetVertexBuffers(0, 2, vbs, strides, offsets);
+        ctx->IASetIndexBuffer(m_indexBuffer.Get(),
+            DXGI_FORMAT_R32_UINT, 0);
+        ctx->DrawIndexedInstanced(
+            (UINT)m_totalIndexCount, (UINT)instanceCount, 0, 0, 0);
+    }
+
+    void Mesh::SetMaterialOverride(const MaterialOverride & override)
+    {
+        m_globalOverride = override;
+        m_hasGlobalOverride = true;
+    }
+
+    void Mesh::SetMaterialOverride(int materialIndex, const MaterialOverride & override)
+    {
+        m_materialOverrides[materialIndex] = override;
+    }
+
+    void Mesh::ClearMaterialOverrides()
+    {
+        m_hasGlobalOverride = false;
+        m_globalOverride = {};
+        m_materialOverrides.clear();
+    }
+
+    const MaterialOverride* Mesh::ResolveOverride(int materialIndex) const
+    {
+        // Per-material override wins over global
+        auto it = m_materialOverrides.find(materialIndex);
+        if (it != m_materialOverrides.end())
+            return &it->second;
+
+        if (m_hasGlobalOverride)
+            return &m_globalOverride;
+
+        return nullptr;
     }
 }

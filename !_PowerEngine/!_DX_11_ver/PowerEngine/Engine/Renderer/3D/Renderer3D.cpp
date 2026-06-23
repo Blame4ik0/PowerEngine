@@ -13,6 +13,8 @@ namespace Engine
     {
         XMFLOAT4X4 World;
         XMFLOAT4X4 WorldViewProjection;
+        XMFLOAT4X4 ViewMatrix;
+        XMFLOAT4X4 ProjectionMatrix;
     };
 
     struct CBPerFrame
@@ -80,6 +82,49 @@ namespace Engine
     };
 
     // ================================================================
+    //  Frustum
+    // ================================================================
+
+    void Frustum::Extract(const XMMATRIX& vp)
+    {
+        // Gribb-Hartmann: extract planes from combined VP matrix rows
+        XMFLOAT4X4 m;
+        XMStoreFloat4x4(&m, XMMatrixTranspose(vp));
+
+        // left, right, top, bottom, near, far
+        planes[0] = { m._41 + m._11, m._42 + m._12, m._43 + m._13, m._44 + m._14 };
+        planes[1] = { m._41 - m._11, m._42 - m._12, m._43 - m._13, m._44 - m._14 };
+        planes[2] = { m._41 - m._21, m._42 - m._22, m._43 - m._23, m._44 - m._24 };
+        planes[3] = { m._41 + m._21, m._42 + m._22, m._43 + m._23, m._44 + m._24 };
+        planes[4] = { m._31,       m._32,       m._33,       m._34 };
+        planes[5] = { m._41 - m._31, m._42 - m._32, m._43 - m._33, m._44 - m._34 };
+
+        // Normalise
+        for (auto& p : planes)
+        {
+            float len = sqrtf(p.x * p.x + p.y * p.y + p.z * p.z);
+            if (len > 0) { p.x /= len; p.y /= len; p.z /= len; p.w /= len; }
+        }
+    }
+
+    bool Frustum::Intersects(const AABB& aabb, const XMMATRIX& world) const
+    {
+        XMFLOAT3 corners[8];
+        aabb.GetCorners(world, corners);
+
+        for (auto& p : planes)
+        {
+            // If all 8 corners are behind this plane — fully outside
+            int outside = 0;
+            for (auto& c : corners)
+                if (p.x * c.x + p.y * c.y + p.z * c.z + p.w < 0.f)
+                    outside++;
+            if (outside == 8) return false;
+        }
+        return true;
+    }
+
+    // ================================================================
     //  Helpers
     // ================================================================
 
@@ -123,18 +168,30 @@ namespace Engine
         if (!m_shader.Load(device, shaderPath, "VS_Main", "PS_Main"))
             return false;
 
-        // Input layout
+        // Input layout — must match Vertex3D exactly
+        // Vertex3D: Position(12) + Normal(12) + TexCoord(8) + Tangent(12) = 44 bytes
+        // Slot 1: per-instance float4x4 world matrix (4 x float4 rows)
         D3D11_INPUT_ELEMENT_DESC lay[] =
         {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0,
-              D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
-              D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24,
-              D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0,
+              D3D11_INPUT_PER_VERTEX_DATA,   0 },
+            { "NORMAL",        0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 12,
+              D3D11_INPUT_PER_VERTEX_DATA,   0 },
+            { "TEXCOORD",      0, DXGI_FORMAT_R32G32_FLOAT,       0, 24,
+              D3D11_INPUT_PER_VERTEX_DATA,   0 },
+            { "TANGENT",       0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 32,
+              D3D11_INPUT_PER_VERTEX_DATA,   0 },
+            { "INSTANCEWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0,
+              D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCEWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16,
+              D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCEWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32,
+              D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCEWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48,
+              D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         };
         if (FAILED(device->CreateInputLayout(
-            lay, 3,
+            lay, 8,
             m_shader.GetVSBlob()->GetBufferPointer(),
             m_shader.GetVSBlob()->GetBufferSize(),
             m_inputLayout.GetAddressOf())))
@@ -161,6 +218,21 @@ namespace Engine
             return false;
         }
 
+        // Instance buffer — holds up to MaxInstanceCount world matrices
+        {
+            D3D11_BUFFER_DESC d{};
+            d.ByteWidth = (UINT)(sizeof(XMFLOAT4X4) * MaxInstanceCount);
+            d.Usage = D3D11_USAGE_DYNAMIC;
+            d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+            d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+            if (FAILED(device->CreateBuffer(&d, nullptr,
+                m_instanceBuffer.GetAddressOf())))
+            {
+                LOG_ERROR("Renderer3D: instance buffer creation failed.");
+                return false;
+            }
+        }
+
         // Main-pass rasterizer
         {
             D3D11_RASTERIZER_DESC d{};
@@ -181,10 +253,11 @@ namespace Engine
                 m_depthStencilState.GetAddressOf());
         }
 
-        // Texture sampler (wrap, linear)
+        // Texture sampler (wrap, anisotropic)
         {
             D3D11_SAMPLER_DESC d{};
-            d.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+            d.Filter = D3D11_FILTER_ANISOTROPIC;
+            d.MaxAnisotropy = 16; // hardware caps to 16 max anyway
             d.AddressU = d.AddressV = d.AddressW =
                 D3D11_TEXTURE_ADDRESS_WRAP;
             d.ComparisonFunc = D3D11_COMPARISON_NEVER;
@@ -248,6 +321,9 @@ namespace Engine
         m_cameraPosition = camera.GetPosition();
         m_currentPass = RenderPass::Main;
         m_inPointShadowPass = false;
+        m_culledCount = 0;
+
+        m_frustum.Extract(m_view * m_projection);
 
         ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
 
@@ -491,10 +567,20 @@ namespace Engine
 
         // ---- main pass ----
 
+        // Frustum cull — skip if AABB is outside all 6 planes
+        if (m_frustumCullEnabled &&
+            !m_frustum.Intersects(mesh.GetAABB(), worldMatrix))
+        {
+            m_culledCount++;
+            return;
+        }
+
         CBPerObject po;
         XMStoreFloat4x4(&po.World, worldMatrix);
         XMStoreFloat4x4(&po.WorldViewProjection,
             worldMatrix * m_view * m_projection);
+        XMStoreFloat4x4(&po.ViewMatrix, m_view);
+        XMStoreFloat4x4(&po.ProjectionMatrix, m_projection);
         UpdateCB(ctx, m_cbPerObject.Get(), po);
 
         auto* alb = ResolveTexture(material.AlbedoTex, material.AlbedoMap);
@@ -531,6 +617,13 @@ namespace Engine
         ctx->IASetInputLayout(m_inputLayout.Get());
         ctx->RSSetState(m_rasterizerState.Get());
         ctx->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+
+        // Slot 1 must be bound even for non-instanced draws (instance rows = 0)
+        UINT instStride = sizeof(XMFLOAT4X4);
+        UINT instOffset = 0;
+        ctx->IASetVertexBuffers(1, 1,
+            m_instanceBuffer.GetAddressOf(), &instStride, &instOffset);
+
         mesh.Draw(ctx);
     }
 
@@ -570,6 +663,8 @@ namespace Engine
         XMStoreFloat4x4(&po.World, worldMatrix);
         XMStoreFloat4x4(&po.WorldViewProjection,
             worldMatrix * m_view * m_projection);
+        XMStoreFloat4x4(&po.ViewMatrix, m_view);
+        XMStoreFloat4x4(&po.ProjectionMatrix, m_projection);
         UpdateCB(ctx, m_cbPerObject.Get(), po);
 
         ctx->VSSetConstantBuffers(0, 1, m_cbPerObject.GetAddressOf());
@@ -584,6 +679,12 @@ namespace Engine
         ctx->RSSetState(m_rasterizerState.Get());
         ctx->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
         ctx->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+        // Slot 1 must be bound even for non-instanced draws
+        UINT instStride = sizeof(XMFLOAT4X4);
+        UINT instOffset = 0;
+        ctx->IASetVertexBuffers(1, 1,
+            m_instanceBuffer.GetAddressOf(), &instStride, &instOffset);
 
         int lastMat = -2;
         for (int s = 0; s < mesh.GetSubMeshCount(); s++)
@@ -622,6 +723,16 @@ namespace Engine
                         || mm.specular ? 1 : 0;
                     mat.UseGlossinessMap = (!mm.isMetallicRoughness &&
                         mm.glossiness) ? 1 : 0;
+
+                    // Apply material overrides (per-material wins over global)
+                    const MaterialOverride* ov = mesh.ResolveOverride(matIdx);
+                    if (ov)
+                    {
+                        if (ov->overrideAlbedo)    mat.Albedo = ov->albedo;
+                        if (ov->overrideMetallic)  mat.Metallic = ov->metallic;
+                        if (ov->overrideRoughness) mat.Roughness = ov->roughness;
+                    }
+
                     UpdateCB(ctx, m_cbMaterial.Get(), mat);
                     ctx->PSSetConstantBuffers(3, 1,
                         m_cbMaterial.GetAddressOf());
@@ -630,6 +741,94 @@ namespace Engine
             }
             mesh.DrawSubMesh(ctx, s);
         }
+    }
+
+    void Renderer3D::DrawMeshInstanced(
+        const Mesh& mesh,
+        const Material& material,
+        const std::vector<XMMATRIX>& transforms)
+    {
+        if (!mesh.IsLoaded() || transforms.empty()) return;
+        if (m_currentPass == RenderPass::Shadow)    return;
+
+        int count = std::min((int)transforms.size(), MaxInstanceCount);
+
+        ID3D11DeviceContext* ctx = m_context->GetDeviceContext();
+
+        // Upload instance world matrices into instance buffer
+        {
+            D3D11_MAPPED_SUBRESOURCE ms{};
+            ctx->Map(m_instanceBuffer.Get(), 0,
+                D3D11_MAP_WRITE_DISCARD, 0, &ms);
+            auto* dst = reinterpret_cast<XMFLOAT4X4*>(ms.pData);
+            for (int i = 0; i < count; i++)
+                XMStoreFloat4x4(&dst[i],
+                    XMMatrixTranspose(transforms[i]));
+            ctx->Unmap(m_instanceBuffer.Get(), 0);
+        }
+
+        // Bind vertex + instance buffers to slots 0 and 1
+        // (mesh's own VB is slot 0, instance buffer is slot 1)
+        UINT strides[2] = { sizeof(Vertex3D), sizeof(XMFLOAT4X4) };
+        UINT offsets[2] = { 0, 0 };
+        ID3D11Buffer* vbs[2] = { nullptr, m_instanceBuffer.Get() };
+        // Get mesh VB via Draw internals — draw normally for single,
+        // for instanced we call DrawIndexedInstanced directly after binding.
+        // Bind material
+        auto* alb = ResolveTexture(material.AlbedoTex, material.AlbedoMap);
+        auto* nrm = ResolveTexture(material.NormalTex, material.NormalMap);
+        auto* spec = ResolveTexture(material.SpecularTex, material.SpecularMap);
+        auto* glos = ResolveTexture(material.GlossinessTex, material.GlossinessMap);
+
+        alb->Bind(ctx, 0);
+        nrm->Bind(ctx, 1);
+        spec->Bind(ctx, 2);
+        glos->Bind(ctx, 3);
+        ctx->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+        CBMaterial mat{};
+        mat.Albedo = material.Albedo;
+        mat.Metallic = material.Metallic;
+        mat.Roughness = material.Roughness;
+        mat.AmbientOcclusion = material.AmbientOcclusion;
+        mat.UseAlbedoMap = (material.AlbedoTex || !material.AlbedoMap.empty()) ? 1 : 0;
+        mat.UseNormalMap = (material.NormalTex || !material.NormalMap.empty()) ? 1 : 0;
+        mat.UseSpecularMap = (material.SpecularTex || !material.SpecularMap.empty()) ? 1 : 0;
+        mat.UseGlossinessMap = (material.GlossinessTex || !material.GlossinessMap.empty()) ? 1 : 0;
+        UpdateCB(ctx, m_cbMaterial.Get(), mat);
+
+        ctx->PSSetConstantBuffers(3, 1, m_cbMaterial.GetAddressOf());
+        ctx->PSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
+        ctx->PSSetConstantBuffers(5, 1, m_cbPointShadow.GetAddressOf());
+        ctx->VSSetConstantBuffers(4, 1, m_cbShadow.GetAddressOf());
+        m_pointShadowMap.BindForSampling(ctx, 6, 2);
+
+        m_shader.Bind(ctx);
+        ctx->IASetInputLayout(m_inputLayout.Get());
+        ctx->RSSetState(m_rasterizerState.Get());
+        ctx->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+        ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // Bind mesh buffers to slot 0, instance buffer to slot 1
+        mesh.BindBuffers(ctx, m_instanceBuffer.Get(), count);
+    }
+
+    void Renderer3D::DrawLodGroup(
+        const LodGroup& group,
+        const XMMATRIX& worldMatrix,
+        const Material& material)
+    {
+        if (group.Empty()) return;
+
+        // World position is the translation row of the world matrix
+        XMVECTOR worldPos = worldMatrix.r[3];
+        XMVECTOR camPos = XMLoadFloat3(&m_cameraPosition);
+        float distance = XMVectorGetX(XMVector3Length(worldPos - camPos));
+
+        Mesh* selected = group.Select(distance);
+        if (!selected) return;
+
+        DrawMesh(*selected, worldMatrix, material);
     }
 
     void Renderer3D::OnResize(float) {}
@@ -644,7 +843,7 @@ namespace Engine
         auto it = m_textureCache.find(path);
         if (it != m_textureCache.end()) return it->second.get();
         auto tex = std::make_shared<Texture2D>();
-        if (!tex->Load(m_context->GetDevice(), path))
+        if (!tex->Load(m_context->GetDevice(), m_context->GetDeviceContext(), path))
         {
             LOG_WARN("Renderer3D: '{}' not found, using white.", path);
             return m_whiteTexture.get();

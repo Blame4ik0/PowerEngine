@@ -18,19 +18,24 @@ namespace Engine
         Texture2D(const Texture2D&) = delete;
         Texture2D& operator=(const Texture2D&) = delete;
 
-        bool Load(ID3D11Device* device, const std::string& filepath);
+        // ctx is required to auto-generate mips after upload.
+        // Pass nullptr to skip mip generation (e.g. for 1x1 white texture).
+        bool Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
+            const std::string& filepath);
         bool LoadWhite(ID3D11Device* device);
         void Bind(ID3D11DeviceContext* ctx, unsigned int slot = 0) const;
 
-        bool LoadFromMemory(ID3D11Device* device,
+        bool LoadFromMemory(ID3D11Device* device, ID3D11DeviceContext* ctx,
             const unsigned char* data,
             int width, int height);
 
-        bool LoadFromAssimp(ID3D11Device* device, const aiTexture* tex);
+        bool LoadFromAssimp(ID3D11Device* device, ID3D11DeviceContext* ctx,
+            const aiTexture* tex);
 
         bool IsLoaded()  const { return m_loaded; }
         int  GetWidth()  const { return m_width; }
         int  GetHeight() const { return m_height; }
+        int  GetMipLevels() const { return m_mipLevels; }
 
         ID3D11ShaderResourceView* GetSRV() const { return m_srv.Get(); }
 
@@ -40,6 +45,7 @@ namespace Engine
 
         int  m_width = 0;
         int  m_height = 0;
+        int  m_mipLevels = 1;
         bool m_loaded = false;
     };
 }

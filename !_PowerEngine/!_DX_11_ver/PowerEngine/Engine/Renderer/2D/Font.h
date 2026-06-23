@@ -29,7 +29,9 @@ namespace Engine
         Font(const Font&) = delete;
         Font& operator=(const Font&) = delete;
 
-        bool Load(ID3D11Device* device,
+        // ctx is required so the atlas texture can get its mip chain
+        // generated, matching the rest of the Texture2D pipeline.
+        bool Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
             const std::string& filepath,
             float fontSize = 24.0f);
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 namespace Engine
 {
@@ -17,6 +18,7 @@ namespace Engine
         DirectX::XMFLOAT3 Position;
         DirectX::XMFLOAT3 Normal;
         DirectX::XMFLOAT2 TexCoord;
+        DirectX::XMFLOAT3 Tangent;
     };
 
     enum class UVMode { Default, FlipV, FlipU, FlipBoth };
@@ -27,33 +29,47 @@ namespace Engine
         std::shared_ptr<Texture2D> texture;
     };
 
-    // A single draw call with its own material index
     struct SubMesh
     {
         ComPtr<ID3D11Buffer> vertexBuffer;
         ComPtr<ID3D11Buffer> indexBuffer;
         int                  indexCount = 0;
-        int                  materialIndex = -1; // index into m_materials
+        int                  materialIndex = -1;
     };
 
-    // Material data extracted from the model file
     struct MeshMaterial
     {
         std::string name;
-
-        // Resolved textures (may be embedded or loaded from disk)
         std::shared_ptr<Texture2D> albedo;
         std::shared_ptr<Texture2D> normal;
-        std::shared_ptr<Texture2D> metallicRoughness; // G=roughness, B=metallic
+        std::shared_ptr<Texture2D> metallicRoughness;
         std::shared_ptr<Texture2D> specular;
         std::shared_ptr<Texture2D> glossiness;
-
-        // Fallback PBR values when no texture
         DirectX::XMFLOAT3 albedoFactor = { 1, 1, 1 };
         float             metallicFactor = 0.0f;
         float             roughnessFactor = 0.5f;
+        bool isMetallicRoughness = true;
+    };
 
-        bool isMetallicRoughness = true; // GLTF vs SpecGloss workflow
+    struct MaterialOverride
+    {
+        bool               overrideAlbedo = false;
+        DirectX::XMFLOAT3  albedo = { 1, 1, 1 };
+        bool               overrideMetallic = false;
+        float              metallic = 0.0f;
+        bool               overrideRoughness = false;
+        float              roughness = 0.5f;
+    };
+
+    // Axis-aligned bounding box in local space
+    struct AABB
+    {
+        DirectX::XMFLOAT3 min = { 1e9f,  1e9f,  1e9f };
+        DirectX::XMFLOAT3 max = { -1e9f, -1e9f, -1e9f };
+
+        // Returns the 8 corners transformed by a world matrix
+        void GetCorners(const DirectX::XMMATRIX& world,
+            DirectX::XMFLOAT3 out[8]) const;
     };
 
     class Mesh
@@ -66,7 +82,8 @@ namespace Engine
         Mesh& operator=(const Mesh&) = delete;
 
         // ---- Loading ----
-        bool Load(ID3D11Device* device, const std::string& filepath,
+        bool Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
+            const std::string& filepath,
             UVMode uvMode = UVMode::FlipV);
         bool CreateCube(ID3D11Device* device, float size = 1.0f);
         bool CreatePlane(ID3D11Device* device, float width = 1.0f,
@@ -88,11 +105,13 @@ namespace Engine
         DirectX::XMMATRIX GetWorldMatrix() const;
 
         // ---- Draw ----
-        // Legacy single-material draw (for primitives)
         void Draw(ID3D11DeviceContext* ctx) const;
-
-        // Draw a specific submesh
         void DrawSubMesh(ID3D11DeviceContext* ctx, int subMeshIndex) const;
+
+        // Used by DrawMeshInstanced — binds VB to slot 0, instance buffer to slot 1
+        void BindBuffers(ID3D11DeviceContext* ctx,
+            ID3D11Buffer* instanceBuffer,
+            int instanceCount) const;
 
         // ---- Data access ----
         bool IsLoaded()         const { return m_loaded; }
@@ -100,8 +119,9 @@ namespace Engine
         int  GetSubMeshCount()  const { return (int)m_subMeshes.size(); }
         int  GetMaterialCount() const { return (int)m_materials.size(); }
 
-        const SubMesh& GetSubMesh(int i)  const { return m_subMeshes[i]; }
+        const SubMesh& GetSubMesh(int i) const { return m_subMeshes[i]; }
         const MeshMaterial& GetMaterial(int i) const { return m_materials[i]; }
+        const AABB& GetAABB()      const { return m_aabb; }
 
         const std::vector<EmbeddedTexture>& GetEmbeddedTextures() const
         {
@@ -110,28 +130,40 @@ namespace Engine
 
         bool HasEmbeddedMaterials() const { return !m_materials.empty(); }
 
+        // ---- Material overrides ----
+        void SetMaterialOverride(const MaterialOverride & override);
+        void SetMaterialOverride(int materialIndex, const MaterialOverride & override);
+        void ClearMaterialOverrides();
+        const MaterialOverride* ResolveOverride(int materialIndex) const;
+
     private:
+        void ComputeAABB(const std::vector<Vertex3D>& vertices);
+        void ExpandAABB(const std::vector<Vertex3D>& vertices);
+
         bool UploadSubMesh(ID3D11Device* device,
             const std::vector<Vertex3D>& vertices,
             const std::vector<uint32_t>& indices,
-            int materialIndex,
-            SubMesh& out);
+            int materialIndex, SubMesh& out);
 
         bool UploadSingle(ID3D11Device* device,
             const std::vector<Vertex3D>& vertices,
             const std::vector<uint32_t>& indices);
 
-        std::vector<SubMesh>        m_subMeshes;
-        std::vector<MeshMaterial>   m_materials;
+        std::vector<SubMesh>         m_subMeshes;
+        std::vector<MeshMaterial>    m_materials;
         std::vector<EmbeddedTexture> m_embeddedTextures;
 
-        // Legacy single buffer (for primitives)
+        bool             m_hasGlobalOverride = false;
+        MaterialOverride m_globalOverride;
+        std::unordered_map<int, MaterialOverride> m_materialOverrides;
+
         ComPtr<ID3D11Buffer> m_vertexBuffer;
         ComPtr<ID3D11Buffer> m_indexBuffer;
 
-        int  m_totalIndexCount = 0;
-        bool m_loaded = false;
-        bool m_hasSubMeshes = false;
+        AABB              m_aabb;
+        int               m_totalIndexCount = 0;
+        bool              m_loaded = false;
+        bool              m_hasSubMeshes = false;
 
         DirectX::XMFLOAT3 m_position = { 0, 0, 0 };
         DirectX::XMFLOAT3 m_rotation = { 0, 0, 0 };

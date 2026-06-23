@@ -16,7 +16,9 @@ add_library(Engine STATIC
     Renderer/3D/Grid.cpp
     Renderer/3D/ShadowMap.cpp
     Renderer/3D/PointShadowMap.cpp
-)
+    Renderer/3D/LodGroup.h 
+    Renderer/3D/Components.h 
+    Renderer/3D/Scene.h)
 
 target_include_directories(Engine
     PUBLIC
@@ -38,6 +40,9 @@ target_include_directories(Engine PRIVATE ${Stb_INCLUDE_DIR})
 
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(Engine PUBLIC assimp::assimp)
+
+find_package(EnTT CONFIG REQUIRED)
+target_link_libraries(Engine PRIVATE EnTT::EnTT)
 
 target_compile_definitions(Engine PUBLIC
     WIN32_LEAN_AND_MEAN

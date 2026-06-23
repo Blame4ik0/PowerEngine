@@ -19,9 +19,13 @@
 #include "Renderer/3D/Mesh.h"
 #include "Renderer/3D/Light.h"
 #include "Renderer/3D/Grid.h"
+#include "Renderer/3D/Scene.h"
+#include "Renderer/3D/Components.h"
 
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
+
+#include <entt/entt.hpp>
 
 // Force discrete GPU on laptops with both Intel and NVIDIA/AMD
 extern "C" { __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; }
@@ -71,7 +75,7 @@ int main()
         static_cast<float>(window.GetHeight()));
 
     Engine::Font font;
-    font.Load(renderer.GetDevice(), FONTS + "montserrat_bold.ttf", 16.0f);
+    font.Load(renderer.GetDevice(), renderer.GetDeviceContext(), FONTS + "montserrat_bold.ttf", 16.0f);
 
     // ---- 3D ----
     Engine::Renderer3D renderer3D;
@@ -97,61 +101,149 @@ int main()
     int shadowQuality = 3;
 
     Engine::Camera3D camera3D;
-    camera3D.SetPosition(0.0f, 2.0f, -5.0f);
+    camera3D.SetPosition(0.0f, 4.0f, -10.0f);
     camera3D.SetPerspective(fov,
         static_cast<float>(window.GetWidth()) /
         static_cast<float>(window.GetHeight()),
         0.1f, 1000.0f);
 
-    // ---- Models ----
- 
-    //Engine::Mesh f1;
-    //bool f1Loaded = f1.Load(renderer.GetDevice(),
-    //    MODELS + "formula_1/f1_mesh.obj");
-    //if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
-    //f1.SetPosition(0.0f, 0.3f, 0.0f);
-    //f1.SetScale(0.01f);
+    // ================================================================
+    //  ECS Scene — everything lives here now
+    // ================================================================
+    Engine::Scene scene;
 
-    //Engine::Mesh sword;
-	//bool swordLoaded = sword.Load(renderer.GetDevice(),
-	//	MODELS + "sword/sword.glb");
-	//if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
-	//sword.SetPosition(0.0f, 1.8f, 0.0f);
-	//sword.SetScale(0.03f);
+    // ---- Floor ----
+    auto floorMesh = std::make_shared<Engine::Mesh>();
+    floorMesh->CreatePlane(renderer.GetDevice(), 30.0f, 30.0f);
 
-    //Engine::Mesh angel;
-	//bool angelLoaded = angel.Load(renderer.GetDevice(),
-    //    MODELS + "angel/scene.gltf");
-	//if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
-	//angel.SetPosition(0.0f, 0.1f, 0.0f);
-    //angel.SetRotation(-90.0f, 180.0f, 0.0f);
-	//angel.SetScale(0.4f);
+    auto floorEntity = scene.CreateEntity("Floor");
+    scene.Registry().emplace<Engine::MeshComponent>(floorEntity,
+        Engine::MeshComponent{ floorMesh, false }); // false = use MaterialComponent
 
+    Engine::Material floorMat;
+    floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
+    floorMat.Metallic = 0.0f;
+    floorMat.Roughness = 0.0f;
+    scene.Registry().emplace<Engine::MaterialComponent>(floorEntity,
+        Engine::MaterialComponent{ floorMat });
+
+    // ---- Sword (center) ----
+    auto swordMesh = std::make_shared<Engine::Mesh>();
+    bool swordLoaded = swordMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "sword/sword.glb");
+    if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
+
+    auto swordEntity = scene.CreateEntity("Sword");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(swordEntity);
+        t.Position = { 0.0f, 1.8f, 0.0f };
+        t.Scale = { 0.03f, 0.03f, 0.03f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(swordEntity,
+            Engine::MeshComponent{ swordMesh, true }); // true = DrawMeshAuto (embedded materials)
+
+        Engine::MaterialOverride swordOv;
+        swordOv.overrideMetallic = true;  swordOv.metallic = 1.0f;
+        swordOv.overrideRoughness = true;  swordOv.roughness = 0.2f;
+        scene.Registry().emplace<Engine::MaterialOverrideComponent>(swordEntity,
+            Engine::MaterialOverrideComponent{ swordOv, 1 });
+    }
+
+    // ---- F1 car (back-left) ----
+    auto f1Mesh = std::make_shared<Engine::Mesh>();
+    bool f1Loaded = f1Mesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "formula_1/f1_mesh.obj");
+    if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
+
+    auto f1Entity = scene.CreateEntity("F1Car");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(f1Entity);
+        t.Position = { -6.0f, 0.3f, 4.0f };
+        t.Scale = { 0.01f, 0.01f, 0.01f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(f1Entity,
+            Engine::MeshComponent{ f1Mesh, false }); // uses MaterialComponent below
+
+        Engine::Material f1Mat;
+        f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
+        f1Mat.Metallic = 1.0f;
+        f1Mat.Roughness = 0.5f;
+        f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
+        f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
+        f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
+        scene.Registry().emplace<Engine::MaterialComponent>(f1Entity,
+            Engine::MaterialComponent{ f1Mat });
+    }
+
+    // ---- Angel (front-left) ----
+    auto angelMesh = std::make_shared<Engine::Mesh>();
+    bool angelLoaded = angelMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "angel/scene.gltf");
+    if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
+
+    auto angelEntity = scene.CreateEntity("Angel");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(angelEntity);
+        t.Position = { -6.0f, 0.1f, -4.0f };
+        t.Rotation = { -90.0f, 180.0f, 0.0f };
+        t.Scale = { 0.4f, 0.4f, 0.4f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(angelEntity,
+            Engine::MeshComponent{ angelMesh, true }); // DrawMeshAuto, embedded materials
+    }
+
+    // ---- Container (back-right) ----
+    auto containerMesh = std::make_shared<Engine::Mesh>();
+    bool containerLoaded = containerMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        CONTAINER + "Container.fbx");
+    if (!containerLoaded) LOG_ERROR("Failed to load container model.");
+
+    auto containerEntity = scene.CreateEntity("Container");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(containerEntity);
+        t.Position = { 6.0f, 2.0f, 4.0f };
+        t.Rotation = { 0.0f, 0.0f, 90.0f };
+        t.Scale = { 0.01f, 0.01f, 0.01f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(containerEntity,
+            Engine::MeshComponent{ containerMesh, false }); // uses MaterialComponent below
+
+        Engine::Material containerMat;
+        containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
+        containerMat.Metallic = 0.0f;
+        containerMat.Roughness = 0.5f;
+        containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
+        containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+        containerMat.NormalMap = CONTAINER + "Container_NormalsMap.png";
+        scene.Registry().emplace<Engine::MaterialComponent>(containerEntity,
+            Engine::MaterialComponent{ containerMat });
+    }
+
+    // ---- Knight (front-right) ----
+    auto knightMesh = std::make_shared<Engine::Mesh>();
+    bool knightLoaded = knightMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "knight/scene.gltf");
+    if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
+
+    auto knightEntity = scene.CreateEntity("Knight");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(knightEntity);
+        t.Position = { 6.0f, 0.1f, -4.0f };
+        t.Rotation = { 180.0f, 0.0f, 0.0f };
+        t.Scale = { 0.08f, 0.08f, 0.08f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(knightEntity,
+            Engine::MeshComponent{ knightMesh, true }); // DrawMeshAuto, embedded materials
+    }
+
+    // ---- Bulbs (follow point lights) ----
+    // Kept as direct Mesh/draw calls since their position is dynamic,
+    // tied every frame to the point light positions below.
     Engine::Mesh bulb;
-    bool bulbLoaded = bulb.Load(renderer.GetDevice(),
+    bool bulbLoaded = bulb.Load(renderer.GetDevice(), renderer.GetDeviceContext(),
         MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
-
-    //Engine::Mesh container;
-    //bool containerLoaded = container.Load(renderer.GetDevice(),
-    //    CONTAINER + "Container.fbx");
-    //if (!containerLoaded) LOG_ERROR("Failed to load container model.");
-    //container.SetPosition(0.0f, 2.0f, 0.0f);
-	//container.SetRotation(0.0f, 0.0f, 90.0f);
-    //container.SetScale(0.01f);
-
-    Engine::Mesh knight;
-	bool knightLoaded = knight.Load(renderer.GetDevice(),
-		MODELS + "knight/scene.gltf");
-	if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
-	knight.SetPosition(0.0f, 0.1f, 0.0f);
-	knight.SetScale(0.08f);
-    knight.SetRotation(180.0f, 0.0f, 0.0f);
-
-    Engine::Mesh floor;
-	floor.CreatePlane(renderer.GetDevice(), 20.0f, 20.0f);
-	floor.SetPosition(0.0f, 0.0f, 0.0f);
 
     // ---- Timer & Input ----
 
@@ -225,7 +317,7 @@ int main()
         }
         if (Engine::InputManager::IsKeyPressed(Engine::Key::R))
         {
-            camera3D.SetPosition(0.0f, 2.0f, -5.0f);
+            camera3D.SetPosition(0.0f, 4.0f, -10.0f);
             camera3D.SetRotation(0.0f, 0.0f, 0.0f);
             fov = 60.0f;
         }
@@ -233,13 +325,13 @@ int main()
             Engine::InputManager::IsKeyPressed(Engine::Key::L))
             lightIntensity = 3.0f;
         if (Engine::InputManager::IsKeyPressed(Engine::Key::Up)) shadowQuality = std::min(shadowQuality + 1, 4);
-		if (Engine::InputManager::IsKeyPressed(Engine::Key::Down)) shadowQuality = std::max(shadowQuality - 1, 0);
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::Down)) shadowQuality = std::max(shadowQuality - 1, 0);
 
         if (Engine::InputManager::IsKeyDown(Engine::Key::LAlt) && Engine::InputManager::IsKeyDown(Engine::Key::U))
         {
-			renderer3D.SetShadowQuality(static_cast<Engine::ShadowQuality>(shadowQuality));
-			renderer3D.SetPointShadowQuality(static_cast<Engine::PointShadowQuality>(shadowQuality));
-			LOG_INFO("Shadow quality set to {}.", shadowQuality);
+            renderer3D.SetShadowQuality(static_cast<Engine::ShadowQuality>(shadowQuality));
+            renderer3D.SetPointShadowQuality(static_cast<Engine::PointShadowQuality>(shadowQuality));
+            LOG_INFO("Shadow quality set to {}.", shadowQuality);
             LOG_WARN("!! Current changes only work with shadows. TBE later !!");
         }
 
@@ -257,17 +349,17 @@ int main()
         Engine::DirectionalLight sun;
         sun.Direction = { 0.5f, -1.0f, 0.3f };
         sun.Color = { 1.0f, 0.95f, 0.9f };
-        sun.Intensity = 0;
+        sun.Intensity = lightIntensity;
         renderer3D.SetDirectionalLight(sun);
 
         Engine::PointLight redLight;
-        redLight.Position = { 3.0f, 2.0f, 0.0f };
+        redLight.Position = { 3.0f, 2.0f, 4.0f };
         redLight.Color = { 1.0f, 0.2f, 0.1f };
         redLight.Intensity = 400.0f * lightIntensity;
         redLight.Radius = 15.0f;
 
         Engine::PointLight blueLight;
-        blueLight.Position = { -3.0f, 2.0f, 0.0f };
+        blueLight.Position = { -3.0f, 2.0f, -4.0f };
         blueLight.Color = { 0.1f, 0.4f,  1.0f };
         blueLight.Intensity = 400.0f * lightIntensity;
         blueLight.Radius = 15.0f;
@@ -276,48 +368,17 @@ int main()
         renderer3D.AddPointLight(redLight);
         renderer3D.AddPointLight(blueLight);
 
-        // ---- Materials ----
-        //Engine::Material f1Mat;
-        //f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
-        //f1Mat.Metallic = 1.0f;
-        //f1Mat.Roughness = 0.5f;
-        //f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
-        //f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
-        //f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
-
-        //Engine::Material containerMat;
-        //containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
-        //containerMat.Metallic = 0.0f;
-        //containerMat.Roughness = 0.5f;
-        //containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
-        //containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
-
-		//Engine::Material knightMat;
-        //knightMat.Albedo = { 1.0f, 1.0f, 1.0f };
-		//knightMat.Metallic = 0.0f;
-		//knightMat.Roughness = 0.5f;
-		//knightMat.AlbedoMap = MODELS + "knight/textures/diffuse.png";
-
-		//Engine::Material angelMat;
-		//angelMat.Albedo = { 1.0f, 1.0f, 1.0f };
-		//angelMat.Metallic = 0.0f;
-		//angelMat.Roughness = 0.5f;
-		//angelMat.AlbedoMap = MODELS + "angel/textures/tex.png";
-
         Engine::Material redBulbMat;
         redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
         redBulbMat.Metallic = 0.0f;
         redBulbMat.Roughness = 0.3f;
+        redBulbMat.NormalMap = MODELS + "bulb/Textures/#LMP0003_Textures_2k/#LMP0003_Textures_NRML_2k.png";
 
         Engine::Material blueBulbMat;
         blueBulbMat.Albedo = { 0.1f, 0.4f, 1.0f };
         blueBulbMat.Metallic = 0.0f;
         blueBulbMat.Roughness = 0.3f;
-
-		Engine::Material floorMat;
-		floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
-		floorMat.Metallic = 0.0f;
-		floorMat.Roughness = 0.0f;
+        blueBulbMat.NormalMap = MODELS + "bulb/Textures/#LMP0003_Textures_2k/#LMP0003_Textures_NRML_2k.png";
 
         // ---- Render ----
         renderer.BeginFrame(0.13f, 0.13f, 0.13f);
@@ -326,37 +387,17 @@ int main()
 
         // Shadow pass
         renderer3D.BeginShadowPass();
-		renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        //if (angelLoaded)
-        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
-        //if (f1Loaded)
-        //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        //if (swordLoaded)
-        //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-        //if (containerLoaded)
-        //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-		if (knightLoaded)
-			renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
+        scene.Draw(renderer3D);
         renderer3D.EndShadowPass();
 
-		// Point shadow pass
+        // Point shadow pass
         renderer3D.BeginPointShadowPass();
         for (int light = 0; light < 2; light++)
         {
             for (int face = 0; face < 6; face++)
             {
                 renderer3D.RenderPointShadowFace(light, face);
-                renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-                //if (angelLoaded)
-                //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
-                //if (f1Loaded)
-                //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-                //if (swordLoaded)
-                //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-                //if (containerLoaded)
-                //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-                if (knightLoaded)
-                    renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
+                scene.Draw(renderer3D);
             }
         }
         renderer3D.EndPointShadowPass();
@@ -364,17 +405,7 @@ int main()
         // Main pass
         if (showGrid)
             grid.Draw(camera3D);
-        renderer3D.DrawMesh(floor, floor.GetWorldMatrix(), floorMat);
-        //if (angelLoaded)
-        //    renderer3D.DrawMeshAuto(angel, angel.GetWorldMatrix());
-        //if (f1Loaded)
-        //    renderer3D.DrawMesh(f1, f1.GetWorldMatrix(), f1Mat);
-        //if (swordLoaded)
-        //    renderer3D.DrawMeshAuto(sword, sword.GetWorldMatrix());
-        //if (containerLoaded)
-        //    renderer3D.DrawMesh(container, container.GetWorldMatrix(), containerMat);
-        if (knightLoaded)
-            renderer3D.DrawMeshAuto(knight, knight.GetWorldMatrix());
+        scene.Draw(renderer3D);
         if (bulbLoaded)
         {
             bulb.SetPosition(redLight.Position.x,
@@ -396,16 +427,19 @@ int main()
         {
             auto camPos = camera3D.GetPosition();
 
-            //int f1Tris = f1Loaded ? f1.GetIndexCount() / 3 : 0;
-            //int containerTris = containerLoaded ? container.GetIndexCount() / 3 : 0;
-			//int swordTris = swordLoaded ? sword.GetIndexCount() / 3 : 0;
-			//int angelTris = angelLoaded ? angel.GetIndexCount() / 3 : 0;
-			int knightTris = knightLoaded ? knight.GetIndexCount() / 3 : 0;
+            int f1Tris = f1Loaded ? f1Mesh->GetIndexCount() / 3 : 0;
+            int containerTris = containerLoaded ? containerMesh->GetIndexCount() / 3 : 0;
+            int swordTris = swordLoaded ? swordMesh->GetIndexCount() / 3 : 0;
+            int angelTris = angelLoaded ? angelMesh->GetIndexCount() / 3 : 0;
+            int knightTris = knightLoaded ? knightMesh->GetIndexCount() / 3 : 0;
             int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
-			int floorTris = floor.GetIndexCount() / 3;
-            int totalTris = knightTris + bulbTris * 2 + floorTris;
+            int floorTris = floorMesh->GetIndexCount() / 3;
+            int totalTris = f1Tris + containerTris + swordTris + angelTris +
+                knightTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
-            int meshCount = (knightLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
+            int meshCount = (f1Loaded ? 1 : 0) + (containerLoaded ? 1 : 0) +
+                (swordLoaded ? 1 : 0) + (angelLoaded ? 1 : 0) +
+                (knightLoaded ? 1 : 0) + (bulbLoaded ? 2 : 0) + 1;
 
             std::string info =
                 "FPS:        " + std::to_string((int)timer.FPS()) + "\n" +
@@ -426,9 +460,10 @@ int main()
                 "  Meshes:    " + std::to_string(meshCount) + "\n" +
                 "  Vertices:  " + std::to_string(totalVerts) + "\n" +
                 "  Triangles: " + std::to_string(totalTris) + "\n" +
+                "  Culled:    " + std::to_string(renderer3D.GetCulledCount()) + "\n" +
                 "  Shadows:   " + std::string(showShadows ? "on" : "off") + "\n" +
                 "  Sun intensity: " + std::to_string(lightIntensity).substr(0, 4) + "\n" +
-				"  Shadow quality: " + std::to_string(shadowQuality) + "\n" + 
+                "  Shadow quality: " + std::to_string(shadowQuality) + "\n" +
                 "\n" +
                 "Controls\n" +
                 "  WASD           move\n" +
@@ -437,11 +472,11 @@ int main()
                 "  LShift         sprint\n" +
                 "  RMB+Scroll     FOV\n" +
                 "  L+Scroll       light intensity\n" +
-                "  RLAlt+L            reset light\n" +
+                "  LAlt+L         reset light\n" +
                 "  R              reset camera\n" +
                 "  C              crosshair\n" +
                 "  G              grid\n" +
-                "  F4             shadows\n" + 
+                "  F4             shadows\n" +
                 "  Up/Down        shadow quality\n" +
                 "  LAlt+U         update and reinit (to apply changes)";
 
