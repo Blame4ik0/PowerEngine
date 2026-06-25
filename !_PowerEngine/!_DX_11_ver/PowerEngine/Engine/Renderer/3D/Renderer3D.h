@@ -30,7 +30,7 @@ namespace Engine
     class Renderer3D
     {
     public:
-        static constexpr int MaxPointLights = 4;
+        static constexpr int MaxPointLights = 8;
         static constexpr int MaxInstanceCount = 1024;
 
         Renderer3D() = default;

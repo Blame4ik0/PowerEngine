@@ -27,6 +27,32 @@ namespace Engine
     };
 
     // ---- Mesh / rendering ----
+
+    // Describes HOW a mesh was created, so SceneSerializer can rebuild it
+    // on load without ever serializing raw vertex/index data.
+    enum class MeshSourceType { File, Plane, Cube, Sphere };
+
+    struct MeshSourceComponent
+    {
+        MeshSourceType Type = MeshSourceType::File;
+
+        // Used when Type == File
+        std::string Filepath;
+        UVMode      UvMode = UVMode::FlipV;
+
+        // Used when Type == Plane
+        float Width = 1.0f;
+        float Height = 1.0f;
+
+        // Used when Type == Cube
+        float Size = 1.0f;
+
+        // Used when Type == Sphere
+        float Radius = 1.0f;
+        int   Slices = 16;
+        int   Stacks = 16;
+    };
+
     struct MeshComponent
     {
         std::shared_ptr<Engine::Mesh> Mesh;
@@ -60,16 +86,18 @@ namespace Engine
         Engine::PointLight Light;
     };
 
+    // Optional — attach to a point light entity to make its color
+    // cycle through the hue wheel over time. BaseHue survives save/load
+    // so the animation phase doesn't depend on registry iteration order.
+    struct RGBCyclerComponent
+    {
+        float BaseHue = 0.0f;
+        float DegreesPerSecond = 40.0f;
+    };
+
     // ---- Editor / misc ----
     struct NameComponent
     {
         std::string Name;
-    };
-
-    // Marks an entity as not yet uploaded to GPU / not ready to draw
-    struct PendingLoadComponent
-    {
-        std::string Filepath;
-        UVMode      UvMode = UVMode::FlipV;
     };
 }

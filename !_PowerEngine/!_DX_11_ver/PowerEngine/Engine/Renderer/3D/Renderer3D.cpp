@@ -27,8 +27,8 @@ namespace Engine
     {
         XMFLOAT3 DirLightDirection;  float _pad1 = 0;
         XMFLOAT3 DirLightColor;      float DirLightIntensity = 0;
-        XMFLOAT4 PointLightPosition[4];   // xyz=pos, w=radius
-        XMFLOAT4 PointLightColor[4];      // xyz=color, w=intensity
+        XMFLOAT4 PointLightPosition[8];   // xyz=pos, w=radius
+        XMFLOAT4 PointLightColor[8];      // xyz=color, w=intensity
         int      PointLightCount = 0;
         XMFLOAT3 _pad2 = {};
     };

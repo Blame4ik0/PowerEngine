@@ -18,7 +18,7 @@ add_library(Engine STATIC
     Renderer/3D/PointShadowMap.cpp
     Renderer/3D/LodGroup.h 
     Renderer/3D/Components.h 
-    Renderer/3D/Scene.h)
+    Renderer/3D/Scene.h "Renderer/3D/SceneSerializer.h" "Renderer/3D/SceneSerializer.cpp" "Core/MathUtils.h")
 
 target_include_directories(Engine
     PUBLIC
@@ -43,6 +43,9 @@ target_link_libraries(Engine PUBLIC assimp::assimp)
 
 find_package(EnTT CONFIG REQUIRED)
 target_link_libraries(Engine PRIVATE EnTT::EnTT)
+
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(Engine PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_definitions(Engine PUBLIC
     WIN32_LEAN_AND_MEAN

@@ -19,8 +19,8 @@ cbuffer LightBuffer : register(b2)
     float3 DirLightColor;
     float DirLightIntensity;
 
-    float4 PointLightPositionRadius[4];
-    float4 PointLightColorIntensity[4];
+    float4 PointLightPositionRadius[8];
+    float4 PointLightColorIntensity[8];
 
     int PointLightCount;
     float3 _pad2;

@@ -14,10 +14,7 @@
   "ExpandedNodes": [
     "",
     "\\Engine",
-    "\\Engine\\Renderer",
-    "\\Engine\\Renderer\\2D",
-    "\\Engine\\Renderer\\3D",
-    "\\Engine\\Renderer\\Shaders",
+    "\\Engine\\Core",
     "\\Sandbox"
   ],
   "PreviewInSolutionExplorer": false

@@ -4,6 +4,7 @@
 
 #include "Core/Logger.h"
 #include "Core/Timer.h"
+#include "Core/MathUtils.h"
 
 #include "Platform/Window.h"
 
@@ -21,6 +22,7 @@
 #include "Renderer/3D/Grid.h"
 #include "Renderer/3D/Scene.h"
 #include "Renderer/3D/Components.h"
+#include "Renderer/3D/SceneSerializer.h"
 
 #include "Input/InputManager.h"
 #include "Input/GamepadManager.h"
@@ -108,7 +110,7 @@ int main()
         0.1f, 1000.0f);
 
     // ================================================================
-    //  ECS Scene — everything lives here now
+    //  ECS Scene
     // ================================================================
     Engine::Scene scene;
 
@@ -118,7 +120,15 @@ int main()
 
     auto floorEntity = scene.CreateEntity("Floor");
     scene.Registry().emplace<Engine::MeshComponent>(floorEntity,
-        Engine::MeshComponent{ floorMesh, false }); // false = use MaterialComponent
+        Engine::MeshComponent{ floorMesh, false });
+    scene.Registry().emplace<Engine::MeshSourceComponent>(floorEntity,
+        [] {
+            Engine::MeshSourceComponent s;
+            s.Type = Engine::MeshSourceType::Plane;
+            s.Width = 30.0f;
+            s.Height = 30.0f;
+            return s;
+        }());
 
     Engine::Material floorMat;
     floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
@@ -140,7 +150,17 @@ int main()
         t.Scale = { 0.03f, 0.03f, 0.03f };
 
         scene.Registry().emplace<Engine::MeshComponent>(swordEntity,
-            Engine::MeshComponent{ swordMesh, true }); // true = DrawMeshAuto (embedded materials)
+            Engine::MeshComponent{ swordMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(swordEntity,
+            [] {
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                s.Filepath = "sword/sword.glb"; // relative to MODELS, resolved below
+                return s;
+            }());
+        // Store the resolved absolute path instead, simpler for reload:
+        scene.Registry().get<Engine::MeshSourceComponent>(swordEntity).Filepath =
+            MODELS + "sword/sword.glb";
 
         Engine::MaterialOverride swordOv;
         swordOv.overrideMetallic = true;  swordOv.metallic = 1.0f;
@@ -162,7 +182,15 @@ int main()
         t.Scale = { 0.01f, 0.01f, 0.01f };
 
         scene.Registry().emplace<Engine::MeshComponent>(f1Entity,
-            Engine::MeshComponent{ f1Mesh, false }); // uses MaterialComponent below
+            Engine::MeshComponent{ f1Mesh, false });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(f1Entity,
+            [] {
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(f1Entity).Filepath =
+            MODELS + "formula_1/f1_mesh.obj";
 
         Engine::Material f1Mat;
         f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
@@ -189,7 +217,15 @@ int main()
         t.Scale = { 0.4f, 0.4f, 0.4f };
 
         scene.Registry().emplace<Engine::MeshComponent>(angelEntity,
-            Engine::MeshComponent{ angelMesh, true }); // DrawMeshAuto, embedded materials
+            Engine::MeshComponent{ angelMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(angelEntity,
+            [] {
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(angelEntity).Filepath =
+            MODELS + "angel/scene.gltf";
     }
 
     // ---- Container (back-right) ----
@@ -206,7 +242,15 @@ int main()
         t.Scale = { 0.01f, 0.01f, 0.01f };
 
         scene.Registry().emplace<Engine::MeshComponent>(containerEntity,
-            Engine::MeshComponent{ containerMesh, false }); // uses MaterialComponent below
+            Engine::MeshComponent{ containerMesh, false });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(containerEntity,
+            [] {
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(containerEntity).Filepath =
+            CONTAINER + "Container.fbx";
 
         Engine::Material containerMat;
         containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
@@ -233,17 +277,66 @@ int main()
         t.Scale = { 0.08f, 0.08f, 0.08f };
 
         scene.Registry().emplace<Engine::MeshComponent>(knightEntity,
-            Engine::MeshComponent{ knightMesh, true }); // DrawMeshAuto, embedded materials
+            Engine::MeshComponent{ knightMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(knightEntity,
+            [] {
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(knightEntity).Filepath =
+            MODELS + "knight/scene.gltf";
     }
 
-    // ---- Bulbs (follow point lights) ----
-    // Kept as direct Mesh/draw calls since their position is dynamic,
-    // tied every frame to the point light positions below.
+    // ---- 8 RGB-cycling point lights, arranged in a ring ----
+    // Each light is a real entity with PointLightComponent. Hue offset
+    // is baked in at creation; the loop below animates hue over time.
+    constexpr int kLightCount = 8;
+
+    for (int i = 0; i < kLightCount; i++)
+    {
+        float angle = (DirectX::XM_2PI / kLightCount) * i;
+        float radius = 8.0f;
+
+        auto lightEntity = scene.CreateEntity("RGBLight" + std::to_string(i));
+        auto& t = scene.Registry().get<Engine::TransformComponent>(lightEntity);
+        t.Position = {
+            cosf(angle) * radius,
+            2.5f,
+            sinf(angle) * radius
+        };
+
+        float baseHue = (360.0f / kLightCount) * i;
+
+        Engine::PointLightComponent plc;
+        plc.Light.Position = t.Position;
+        plc.Light.Color = Engine::HsvToRgb(baseHue, 1.0f, 1.0f);
+        plc.Light.Intensity = 150.0f;
+        plc.Light.Radius = 12.0f;
+        scene.Registry().emplace<Engine::PointLightComponent>(lightEntity, plc);
+
+        // BaseHue is stored on the entity itself, so the animation phase
+        // survives Save/Load and doesn't depend on iteration order.
+        scene.Registry().emplace<Engine::RGBCyclerComponent>(lightEntity,
+            Engine::RGBCyclerComponent{ baseHue, 40.0f });
+    }
+
+    // ---- Bulbs visualizing the first two RGB lights (purely decorative) ----
     Engine::Mesh bulb;
     bool bulbLoaded = bulb.Load(renderer.GetDevice(), renderer.GetDeviceContext(),
         MODELS + "bulb/Low_Poly_Light_Bulb.fbx");
     if (!bulbLoaded) LOG_ERROR("Failed to load bulb model.");
     bulb.SetScale(1.5f);
+
+    // ---- Directional light entity ----
+    auto sunEntity = scene.CreateEntity("Sun");
+    {
+        Engine::DirectionalLightComponent sun;
+        sun.Light.Direction = { 0.5f, -1.0f, 0.3f };
+        sun.Light.Color = { 1.0f, 0.95f, 0.9f };
+        sun.Light.Intensity = lightIntensity;
+        scene.Registry().emplace<Engine::DirectionalLightComponent>(sunEntity, sun);
+    }
 
     // ---- Timer & Input ----
 
@@ -252,6 +345,8 @@ int main()
 
     Engine::InputManager::Init();
     Engine::GamepadManager::Init();
+
+    float rgbTime = 0.0f;
 
     LOG_INFO("Entering main loop.");
 
@@ -265,6 +360,7 @@ int main()
 
         timer.Tick();
         const float dt = timer.DeltaTime();
+        rgbTime += dt;
 
         // ---- Camera control ----
         if (Engine::InputManager::IsMouseButtonPressed(Engine::MouseButton::Right))
@@ -335,6 +431,17 @@ int main()
             LOG_WARN("!! Current changes only work with shadows. TBE later !!");
         }
 
+        // ---- Scene save/load test hotkeys ----
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F6))
+        {
+            Engine::SceneSerializer::Save(scene, "scene.json");
+        }
+        if (Engine::InputManager::IsKeyPressed(Engine::Key::F7))
+        {
+            Engine::SceneSerializer::Load(scene, "scene.json",
+                renderer.GetDevice(), renderer.GetDeviceContext());
+        }
+
         // ---- Resize ----
         renderer.Resize(window.GetWidth(), window.GetHeight());
         camera2D.SetViewSize(
@@ -345,43 +452,28 @@ int main()
             static_cast<float>(window.GetHeight()),
             0.1f, 1000.0f);
 
-        // ---- Lighting ----
-        Engine::DirectionalLight sun;
-        sun.Direction = { 0.5f, -1.0f, 0.3f };
-        sun.Color = { 1.0f, 0.95f, 0.9f };
-        sun.Intensity = lightIntensity;
-        renderer3D.SetDirectionalLight(sun);
+        // ---- Animate RGB lights (hue rotates over time, phase per-entity) ----
+        {
+            auto view = scene.Registry().view<Engine::PointLightComponent, Engine::RGBCyclerComponent>();
+            for (auto e : view)
+            {
+                auto& cycler = view.get<Engine::RGBCyclerComponent>(e);
+                auto& light = view.get<Engine::PointLightComponent>(e).Light;
 
-        Engine::PointLight redLight;
-        redLight.Position = { 3.0f, 2.0f, 4.0f };
-        redLight.Color = { 1.0f, 0.2f, 0.1f };
-        redLight.Intensity = 400.0f * lightIntensity;
-        redLight.Radius = 15.0f;
+                float hue = fmodf(cycler.BaseHue + rgbTime * cycler.DegreesPerSecond, 360.0f);
+                light.Color = Engine::HsvToRgb(hue, 1.0f, 1.0f);
+            }
+        }
 
-        Engine::PointLight blueLight;
-        blueLight.Position = { -3.0f, 2.0f, -4.0f };
-        blueLight.Color = { 0.1f, 0.4f,  1.0f };
-        blueLight.Intensity = 400.0f * lightIntensity;
-        blueLight.Radius = 15.0f;
+        // Sync sun intensity (controlled by scroll/hotkeys above)
+        if (auto* sun = scene.Registry().try_get<Engine::DirectionalLightComponent>(sunEntity))
+            sun->Light.Intensity = lightIntensity;
 
-        renderer3D.ClearPointLights();
-        renderer3D.AddPointLight(redLight);
-        renderer3D.AddPointLight(blueLight);
-
-        Engine::Material redBulbMat;
-        redBulbMat.Albedo = { 1.0f, 0.2f, 0.1f };
-        redBulbMat.Metallic = 0.0f;
-        redBulbMat.Roughness = 0.3f;
-        redBulbMat.NormalMap = MODELS + "bulb/Textures/#LMP0003_Textures_2k/#LMP0003_Textures_NRML_2k.png";
-
-        Engine::Material blueBulbMat;
-        blueBulbMat.Albedo = { 0.1f, 0.4f, 1.0f };
-        blueBulbMat.Metallic = 0.0f;
-        blueBulbMat.Roughness = 0.3f;
-        blueBulbMat.NormalMap = MODELS + "bulb/Textures/#LMP0003_Textures_2k/#LMP0003_Textures_NRML_2k.png";
+        // Push all lights from ECS into the renderer for this frame
+        scene.UpdateLights(renderer3D);
 
         // ---- Render ----
-        renderer.BeginFrame(0.13f, 0.13f, 0.13f);
+        renderer.BeginFrame(0.05f, 0.05f, 0.07f);
 
         renderer3D.BeginScene(camera3D);
 
@@ -390,9 +482,10 @@ int main()
         scene.Draw(renderer3D);
         renderer3D.EndShadowPass();
 
-        // Point shadow pass
+        // Point shadow pass — note: only the first MaxPointLights (4) lights
+        // get real-time shadows; Renderer3D caps shadow-casting lights.
         renderer3D.BeginPointShadowPass();
-        for (int light = 0; light < 2; light++)
+        for (int light = 0; light < 4; light++)
         {
             for (int face = 0; face < 6; face++)
             {
@@ -406,17 +499,23 @@ int main()
         if (showGrid)
             grid.Draw(camera3D);
         scene.Draw(renderer3D);
+
+        // Draw a decorative bulb at every point light currently in the scene.
+        // We always re-query the registry fresh (never cache entity handles
+        // across a Load(), since Load() clears and recreates all entities).
         if (bulbLoaded)
         {
-            bulb.SetPosition(redLight.Position.x,
-                redLight.Position.y,
-                redLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), redBulbMat);
+            auto view = scene.Registry().view<Engine::PointLightComponent>();
+            for (auto e : view)
+            {
+                auto& light = view.get<Engine::PointLightComponent>(e).Light;
 
-            bulb.SetPosition(blueLight.Position.x,
-                blueLight.Position.y,
-                blueLight.Position.z);
-            renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), blueBulbMat);
+                Engine::Material bulbMat;
+                bulbMat.Albedo = light.Color;
+                bulbMat.Roughness = 0.3f;
+                bulb.SetPosition(light.Position.x, light.Position.y, light.Position.z);
+                renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), bulbMat);
+            }
         }
 
         // ---- 2D UI ----
@@ -461,6 +560,7 @@ int main()
                 "  Vertices:  " + std::to_string(totalVerts) + "\n" +
                 "  Triangles: " + std::to_string(totalTris) + "\n" +
                 "  Culled:    " + std::to_string(renderer3D.GetCulledCount()) + "\n" +
+                "  RGB lights: " + std::to_string(kLightCount) + "\n" +
                 "  Shadows:   " + std::string(showShadows ? "on" : "off") + "\n" +
                 "  Sun intensity: " + std::to_string(lightIntensity).substr(0, 4) + "\n" +
                 "  Shadow quality: " + std::to_string(shadowQuality) + "\n" +
@@ -478,7 +578,9 @@ int main()
                 "  G              grid\n" +
                 "  F4             shadows\n" +
                 "  Up/Down        shadow quality\n" +
-                "  LAlt+U         update and reinit (to apply changes)";
+                "  LAlt+U         update and reinit (to apply changes)\n" +
+                "  F6             save scene.json\n" +
+                "  F7             load scene.json";
 
             renderer2D.DrawText(font, info, 10.0f, 10.0f, 1.0f, 1.0f, 1.0f);
         }
