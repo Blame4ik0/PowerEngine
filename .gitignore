@@ -24,3 +24,4 @@ CMakeUserPresets.json
 *.json
 *.sqlite
 *.db
+*.db

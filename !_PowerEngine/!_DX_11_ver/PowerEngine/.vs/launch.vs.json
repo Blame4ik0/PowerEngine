@@ -6,7 +6,19 @@
       "type": "default",
       "project": "CMakeLists.txt",
       "projectTarget": "Sandbox.exe (bin\\Sandbox.exe)",
-      "name": "Sandbox.exe (bin\\Sandbox.exe)"
+      "name": "Sandbox.exe (bin\\Sandbox.exe)",
+      "args": [
+        "--scene=current_test.json"
+      ]
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "PowerEngine.exe (bin\\PowerEngine.exe)",
+      "name": "PowerEngine.exe (bin\\PowerEngine.exe)",
+      "args": [
+        "--scene=current_test.json"
+      ]
     }
   ]
 }

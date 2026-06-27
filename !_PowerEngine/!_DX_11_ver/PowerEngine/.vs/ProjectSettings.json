@@ -1,3 +1,5 @@
 {
+  "39E78A80463CC46DB38F1CC59731836701264F043E48204AA8D953303228AB60": "--scene=current_test.json|--scene=scene.json|",
+  "88AB0A8FF5B5DB5348E7F5B2EE1C4810CB304C884649CBA03A173F933ACE444E": "--scene=current_test.json|--scene=current_test_abc.json|",
   "CurrentProjectSetting": "x64 Release"
 }

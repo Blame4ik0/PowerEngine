@@ -13,9 +13,10 @@
   },
   "ExpandedNodes": [
     "",
+    "\\Application",
     "\\Engine",
-    "\\Engine\\Core",
-    "\\Sandbox"
+    "\\Engine\\Core"
   ],
+  "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }
