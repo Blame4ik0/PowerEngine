@@ -60,7 +60,7 @@
               "RelativeDocumentMoniker": "Application\\main.cpp",
               "ToolTip": "C:\\Users\\blame\\Desktop\\Software\\PowerEngine\\!_PowerEngine\\!_DX_11_ver\\PowerEngine\\Application\\main.cpp",
               "RelativeToolTip": "Application\\main.cpp",
-              "ViewState": "AgIAAOkBAAAAAAAAAAAAAA8CAAALAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-06-15T08:26:11.711Z",
               "EditorCaption": ""
@@ -75,8 +75,7 @@
               "RelativeToolTip": "Application\\CMakeLists.txt",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2026-06-25T19:19:04.298Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-25T19:19:04.298Z"
             },
             {
               "$type": "Document",
@@ -88,8 +87,7 @@
               "RelativeToolTip": "Engine\\Core\\MathUtils.h",
               "ViewState": "AgIAAAgAAAAAAAAAAAAAADIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-24T07:53:43.858Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-24T07:53:43.858Z"
             },
             {
               "$type": "Document",
@@ -101,8 +99,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAG4DAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-24T07:52:48.2Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-24T07:52:48.2Z"
             },
             {
               "$type": "Document",
@@ -114,8 +111,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Renderer3D.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAKYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-24T07:52:39.492Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-24T07:52:39.492Z"
             },
             {
               "$type": "Document",
@@ -127,8 +123,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\SceneSerializer.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-24T07:32:45.784Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-24T07:32:45.784Z"
             },
             {
               "$type": "Document",
@@ -140,8 +135,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Components.h",
               "ViewState": "AgIAADwAAAAAAAAAAAAAAGYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-23T11:02:51.075Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-23T11:02:51.075Z"
             },
             {
               "$type": "Document",
@@ -153,8 +147,7 @@
               "RelativeToolTip": "Engine\\CMakeLists.txt",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8AAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2026-06-23T10:31:29.895Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-23T10:31:29.895Z"
             },
             {
               "$type": "Document",
@@ -166,8 +159,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Mesh.cpp",
               "ViewState": "AgIAAPIBAAAAAAAAAAAAABwCAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-06-19T15:41:22.676Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-19T15:41:22.676Z"
             },
             {
               "$type": "Document",
@@ -179,8 +171,7 @@
               "RelativeToolTip": "Engine\\Renderer\\3D\\Mesh.h",
               "ViewState": "AgIAAIMAAAAAAAAAAAAAAK0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-06-19T15:41:22.183Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-19T15:41:22.183Z"
             }
           ]
         }

@@ -29,23 +29,29 @@ public:
     bool    UseRelease()     const;
     QString ActiveExePath()  const; // resolves Debug/Release choice to a path
 
+    QString AssetsRoot() const; // absolute path to the !_ASSETS folder on this machine
+
     int  Width()       const;
     int  Height()      const;
     bool VSync()        const;
     int  RefreshRateHz() const;
+    bool ShowGrid()      const;
 
 private slots:
     void OnBrowseDebug();
     void OnBrowseRelease();
+    void OnBrowseAssetsRoot();
     void OnAccept();
 
 private:
     QComboBox* m_buildConfigCombo; // Debug / Release
     QLineEdit* m_debugPathEdit;
     QLineEdit* m_releasePathEdit;
+    QLineEdit* m_assetsRootEdit;
 
     QSpinBox*  m_widthSpin;
     QSpinBox*  m_heightSpin;
     QCheckBox* m_vsyncCheck;
     QSpinBox*  m_hzSpin;
+    QCheckBox* m_showGridCheck;
 };

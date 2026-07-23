@@ -40,12 +40,22 @@ extern "C" { __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 // Missing file or missing keys silently fall back to the defaults
 // already set on WindowProps, so the engine still runs standalone
 // without an editor-provided config.
-static void ApplyEngineConfig(const std::string& iniPath, Engine::WindowProps& props)
+// Settings from engine_config.ini that don't belong on WindowProps
+// (i.e. not about the window/swapchain itself, but initial engine state).
+// Add more fields here as the editor grows more Run Settings options.
+struct EngineExtraConfig
+{
+    bool ShowGrid = true;
+};
+
+static void ApplyEngineConfig(const std::string& iniPath,
+                               Engine::WindowProps& props,
+                               EngineExtraConfig& extra)
 {
     std::ifstream file(iniPath);
     if (!file.is_open())
     {
-        LOG_WARN("No engine_config.ini found at '{}', using defaults.", iniPath);
+        LOG_INFO("No engine_config.ini found at '{}', using defaults.", iniPath);
         return;
     }
 
@@ -57,7 +67,7 @@ static void ApplyEngineConfig(const std::string& iniPath, Engine::WindowProps& p
         auto eq = line.find('=');
         if (eq == std::string::npos) continue;
 
-        std::string key = line.substr(0, eq);
+        std::string key   = line.substr(0, eq);
         std::string value = line.substr(eq + 1);
 
         // Trim trailing \r (Windows line endings) and whitespace
@@ -66,10 +76,11 @@ static void ApplyEngineConfig(const std::string& iniPath, Engine::WindowProps& p
 
         try
         {
-            if (key == "width")  props.Width = std::stoi(value);
-            else if (key == "height") props.Height = std::stoi(value);
-            else if (key == "vsync")  props.VSync = (std::stoi(value) != 0);
-            else if (key == "hz")     props.RefreshRate = std::stoi(value);
+            if      (key == "width")     props.Width       = std::stoi(value);
+            else if (key == "height")    props.Height      = std::stoi(value);
+            else if (key == "vsync")     props.VSync       = (std::stoi(value) != 0);
+            else if (key == "hz")        props.RefreshRate = std::stoi(value);
+            else if (key == "show_grid") extra.ShowGrid    = (std::stoi(value) != 0);
         }
         catch (...)
         {
@@ -77,13 +88,13 @@ static void ApplyEngineConfig(const std::string& iniPath, Engine::WindowProps& p
         }
     }
 
-    LOG_INFO("Loaded engine_config.ini: {}x{}, vsync={}, hz={}",
-        props.Width, props.Height, props.VSync, props.RefreshRate);
+    LOG_INFO("Loaded engine_config.ini: {}x{}, vsync={}, hz={}, show_grid={}",
+        props.Width, props.Height, props.VSync, props.RefreshRate, extra.ShowGrid);
 }
 
 int main(int argc, char** argv)
 {
-    // ---- Command-line: --scene=path/to/scene.json ----
+    // ---- Command-line: --scene=path/to/scene.pesf ----
     // If provided, the engine loads that scene instead of building the
     // built-in demo scene. This is the hand-off point used by PowerEditor:
     // the editor saves a scene to disk, then launches this executable
@@ -120,7 +131,8 @@ int main(int argc, char** argv)
     // defaults above. Working directory is the exe's own folder (set by
     // QProcess::setWorkingDirectory on the editor side), so a relative
     // path resolves correctly both standalone and when launched by the editor.
-    ApplyEngineConfig("engine_config.ini", props);
+    EngineExtraConfig extraConfig;
+    ApplyEngineConfig("engine_config.ini", props, extraConfig);
 
     Engine::Window window(props);
 
@@ -167,7 +179,7 @@ int main(int argc, char** argv)
     float lightIntensity = 3.0f;
     bool showInfo = false;
     bool showCrosshair = false;
-    bool showGrid = true;
+    bool showGrid = extraConfig.ShowGrid;
     bool showShadows = true;
     int shadowQuality = 3;
 
@@ -206,227 +218,227 @@ int main(int argc, char** argv)
 
     // ---- Demo scene (only built if nothing was loaded above) ----
     std::shared_ptr<Engine::Mesh> floorMesh, swordMesh, f1Mesh, angelMesh,
-        containerMesh, knightMesh;
+                                   containerMesh, knightMesh;
     bool swordLoaded = false, f1Loaded = false, angelLoaded = false,
-        containerLoaded = false, knightLoaded = false;
+         containerLoaded = false, knightLoaded = false;
     constexpr int kLightCount = 8;
 
     if (!loadedFromFile)
     {
-        // ---- Floor ----
-        floorMesh = std::make_shared<Engine::Mesh>();
-        floorMesh->CreatePlane(renderer.GetDevice(), 30.0f, 30.0f);
+    // ---- Floor ----
+    floorMesh = std::make_shared<Engine::Mesh>();
+    floorMesh->CreatePlane(renderer.GetDevice(), 30.0f, 30.0f);
 
-        auto floorEntity = scene.CreateEntity("Floor");
-        scene.Registry().emplace<Engine::MeshComponent>(floorEntity,
-            Engine::MeshComponent{ floorMesh, false });
-        scene.Registry().emplace<Engine::MeshSourceComponent>(floorEntity,
-            [] {
+    auto floorEntity = scene.CreateEntity("Floor");
+    scene.Registry().emplace<Engine::MeshComponent>(floorEntity,
+        Engine::MeshComponent{ floorMesh, false });
+    scene.Registry().emplace<Engine::MeshSourceComponent>(floorEntity,
+        []{
+            Engine::MeshSourceComponent s;
+            s.Type   = Engine::MeshSourceType::Plane;
+            s.Width  = 30.0f;
+            s.Height = 30.0f;
+            return s;
+        }());
+
+    Engine::Material floorMat;
+    floorMat.Albedo    = { 0.15f, 0.15f, 0.15f };
+    floorMat.Metallic  = 0.0f;
+    floorMat.Roughness = 0.0f;
+    scene.Registry().emplace<Engine::MaterialComponent>(floorEntity,
+        Engine::MaterialComponent{ floorMat });
+
+    // ---- Sword (center) ----
+    swordMesh = std::make_shared<Engine::Mesh>();
+    swordLoaded = swordMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "sword/sword.glb");
+    if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
+
+    auto swordEntity = scene.CreateEntity("Sword");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(swordEntity);
+        t.Position = { 0.0f, 1.8f, 0.0f };
+        t.Scale    = { 0.03f, 0.03f, 0.03f };
+
+        scene.Registry().emplace<Engine::MeshComponent>(swordEntity,
+            Engine::MeshComponent{ swordMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(swordEntity,
+            []{
                 Engine::MeshSourceComponent s;
-                s.Type = Engine::MeshSourceType::Plane;
-                s.Width = 30.0f;
-                s.Height = 30.0f;
+                s.Type     = Engine::MeshSourceType::File;
+                s.Filepath = "sword/sword.glb"; // relative to MODELS, resolved below
                 return s;
             }());
+        // Store the resolved absolute path instead, simpler for reload:
+        scene.Registry().get<Engine::MeshSourceComponent>(swordEntity).Filepath =
+            MODELS + "sword/sword.glb";
 
-        Engine::Material floorMat;
-        floorMat.Albedo = { 0.15f, 0.15f, 0.15f };
-        floorMat.Metallic = 0.0f;
-        floorMat.Roughness = 0.0f;
-        scene.Registry().emplace<Engine::MaterialComponent>(floorEntity,
-            Engine::MaterialComponent{ floorMat });
+        Engine::MaterialOverride swordOv;
+        swordOv.overrideMetallic  = true;  swordOv.metallic  = 1.0f;
+        swordOv.overrideRoughness = true;  swordOv.roughness = 0.2f;
+        scene.Registry().emplace<Engine::MaterialOverrideComponent>(swordEntity,
+            Engine::MaterialOverrideComponent{ swordOv, 1 });
+    }
 
-        // ---- Sword (center) ----
-        swordMesh = std::make_shared<Engine::Mesh>();
-        swordLoaded = swordMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
-            MODELS + "sword/sword.glb");
-        if (!swordLoaded) LOG_ERROR("Failed to load Sword model.");
+    // ---- F1 car (back-left) ----
+    f1Mesh = std::make_shared<Engine::Mesh>();
+    f1Loaded = f1Mesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "formula_1/f1_mesh.obj");
+    if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
 
-        auto swordEntity = scene.CreateEntity("Sword");
-        {
-            auto& t = scene.Registry().get<Engine::TransformComponent>(swordEntity);
-            t.Position = { 0.0f, 1.8f, 0.0f };
-            t.Scale = { 0.03f, 0.03f, 0.03f };
+    auto f1Entity = scene.CreateEntity("F1Car");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(f1Entity);
+        t.Position = { -6.0f, 0.3f, 4.0f };
+        t.Scale    = { 0.01f, 0.01f, 0.01f };
 
-            scene.Registry().emplace<Engine::MeshComponent>(swordEntity,
-                Engine::MeshComponent{ swordMesh, true });
-            scene.Registry().emplace<Engine::MeshSourceComponent>(swordEntity,
-                [] {
-                    Engine::MeshSourceComponent s;
-                    s.Type = Engine::MeshSourceType::File;
-                    s.Filepath = "sword/sword.glb"; // relative to MODELS, resolved below
-                    return s;
-                }());
-            // Store the resolved absolute path instead, simpler for reload:
-            scene.Registry().get<Engine::MeshSourceComponent>(swordEntity).Filepath =
-                MODELS + "sword/sword.glb";
+        scene.Registry().emplace<Engine::MeshComponent>(f1Entity,
+            Engine::MeshComponent{ f1Mesh, false });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(f1Entity,
+            []{
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(f1Entity).Filepath =
+            MODELS + "formula_1/f1_mesh.obj";
 
-            Engine::MaterialOverride swordOv;
-            swordOv.overrideMetallic = true;  swordOv.metallic = 1.0f;
-            swordOv.overrideRoughness = true;  swordOv.roughness = 0.2f;
-            scene.Registry().emplace<Engine::MaterialOverrideComponent>(swordEntity,
-                Engine::MaterialOverrideComponent{ swordOv, 1 });
-        }
+        Engine::Material f1Mat;
+        f1Mat.Albedo        = { 1.0f, 1.0f, 1.0f };
+        f1Mat.Metallic      = 1.0f;
+        f1Mat.Roughness     = 0.5f;
+        f1Mat.AlbedoMap     = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
+        f1Mat.SpecularMap   = F1_TEX + "formula1_DefaultMaterial_Specular.png";
+        f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
+        scene.Registry().emplace<Engine::MaterialComponent>(f1Entity,
+            Engine::MaterialComponent{ f1Mat });
+    }
 
-        // ---- F1 car (back-left) ----
-        f1Mesh = std::make_shared<Engine::Mesh>();
-        f1Loaded = f1Mesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
-            MODELS + "formula_1/f1_mesh.obj");
-        if (!f1Loaded) LOG_ERROR("Failed to load F1 model.");
+    // ---- Angel (front-left) ----
+    angelMesh = std::make_shared<Engine::Mesh>();
+    angelLoaded = angelMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "angel/scene.gltf");
+    if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
 
-        auto f1Entity = scene.CreateEntity("F1Car");
-        {
-            auto& t = scene.Registry().get<Engine::TransformComponent>(f1Entity);
-            t.Position = { -6.0f, 0.3f, 4.0f };
-            t.Scale = { 0.01f, 0.01f, 0.01f };
+    auto angelEntity = scene.CreateEntity("Angel");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(angelEntity);
+        t.Position = { -6.0f, 0.1f, -4.0f };
+        t.Rotation = { -90.0f, 180.0f, 0.0f };
+        t.Scale    = { 0.4f, 0.4f, 0.4f };
 
-            scene.Registry().emplace<Engine::MeshComponent>(f1Entity,
-                Engine::MeshComponent{ f1Mesh, false });
-            scene.Registry().emplace<Engine::MeshSourceComponent>(f1Entity,
-                [] {
-                    Engine::MeshSourceComponent s;
-                    s.Type = Engine::MeshSourceType::File;
-                    return s;
-                }());
-            scene.Registry().get<Engine::MeshSourceComponent>(f1Entity).Filepath =
-                MODELS + "formula_1/f1_mesh.obj";
+        scene.Registry().emplace<Engine::MeshComponent>(angelEntity,
+            Engine::MeshComponent{ angelMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(angelEntity,
+            []{
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(angelEntity).Filepath =
+            MODELS + "angel/scene.gltf";
+    }
 
-            Engine::Material f1Mat;
-            f1Mat.Albedo = { 1.0f, 1.0f, 1.0f };
-            f1Mat.Metallic = 1.0f;
-            f1Mat.Roughness = 0.5f;
-            f1Mat.AlbedoMap = F1_TEX + "formula1_DefaultMaterial_Diffuse.png";
-            f1Mat.SpecularMap = F1_TEX + "formula1_DefaultMaterial_Specular.png";
-            f1Mat.GlossinessMap = F1_TEX + "formula1_DefaultMaterial_Glossiness.png";
-            scene.Registry().emplace<Engine::MaterialComponent>(f1Entity,
-                Engine::MaterialComponent{ f1Mat });
-        }
+    // ---- Container (back-right) ----
+    containerMesh = std::make_shared<Engine::Mesh>();
+    containerLoaded = containerMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        CONTAINER + "Container.fbx");
+    if (!containerLoaded) LOG_ERROR("Failed to load container model.");
 
-        // ---- Angel (front-left) ----
-        angelMesh = std::make_shared<Engine::Mesh>();
-        angelLoaded = angelMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
-            MODELS + "angel/scene.gltf");
-        if (!angelLoaded) LOG_ERROR("Failed to load angel model.");
+    auto containerEntity = scene.CreateEntity("Container");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(containerEntity);
+        t.Position = { 6.0f, 2.0f, 4.0f };
+        t.Rotation = { 0.0f, 0.0f, 90.0f };
+        t.Scale    = { 0.01f, 0.01f, 0.01f };
 
-        auto angelEntity = scene.CreateEntity("Angel");
-        {
-            auto& t = scene.Registry().get<Engine::TransformComponent>(angelEntity);
-            t.Position = { -6.0f, 0.1f, -4.0f };
-            t.Rotation = { -90.0f, 180.0f, 0.0f };
-            t.Scale = { 0.4f, 0.4f, 0.4f };
+        scene.Registry().emplace<Engine::MeshComponent>(containerEntity,
+            Engine::MeshComponent{ containerMesh, false });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(containerEntity,
+            []{
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(containerEntity).Filepath =
+            CONTAINER + "Container.fbx";
 
-            scene.Registry().emplace<Engine::MeshComponent>(angelEntity,
-                Engine::MeshComponent{ angelMesh, true });
-            scene.Registry().emplace<Engine::MeshSourceComponent>(angelEntity,
-                [] {
-                    Engine::MeshSourceComponent s;
-                    s.Type = Engine::MeshSourceType::File;
-                    return s;
-                }());
-            scene.Registry().get<Engine::MeshSourceComponent>(angelEntity).Filepath =
-                MODELS + "angel/scene.gltf";
-        }
+        Engine::Material containerMat;
+        containerMat.Albedo      = { 1.0f, 1.0f, 1.0f };
+        containerMat.Metallic    = 0.0f;
+        containerMat.Roughness   = 0.5f;
+        containerMat.AlbedoMap   = CONTAINER + "Container_DiffuseMap.jpg";
+        containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
+        containerMat.NormalMap   = CONTAINER + "Container_NormalsMap.png";
+        scene.Registry().emplace<Engine::MaterialComponent>(containerEntity,
+            Engine::MaterialComponent{ containerMat });
+    }
 
-        // ---- Container (back-right) ----
-        containerMesh = std::make_shared<Engine::Mesh>();
-        containerLoaded = containerMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
-            CONTAINER + "Container.fbx");
-        if (!containerLoaded) LOG_ERROR("Failed to load container model.");
+    // ---- Knight (front-right) ----
+    knightMesh = std::make_shared<Engine::Mesh>();
+    knightLoaded = knightMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
+        MODELS + "knight/scene.gltf");
+    if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
 
-        auto containerEntity = scene.CreateEntity("Container");
-        {
-            auto& t = scene.Registry().get<Engine::TransformComponent>(containerEntity);
-            t.Position = { 6.0f, 2.0f, 4.0f };
-            t.Rotation = { 0.0f, 0.0f, 90.0f };
-            t.Scale = { 0.01f, 0.01f, 0.01f };
+    auto knightEntity = scene.CreateEntity("Knight");
+    {
+        auto& t = scene.Registry().get<Engine::TransformComponent>(knightEntity);
+        t.Position = { 6.0f, 0.1f, -4.0f };
+        t.Rotation = { 180.0f, 0.0f, 0.0f };
+        t.Scale    = { 0.08f, 0.08f, 0.08f };
 
-            scene.Registry().emplace<Engine::MeshComponent>(containerEntity,
-                Engine::MeshComponent{ containerMesh, false });
-            scene.Registry().emplace<Engine::MeshSourceComponent>(containerEntity,
-                [] {
-                    Engine::MeshSourceComponent s;
-                    s.Type = Engine::MeshSourceType::File;
-                    return s;
-                }());
-            scene.Registry().get<Engine::MeshSourceComponent>(containerEntity).Filepath =
-                CONTAINER + "Container.fbx";
+        scene.Registry().emplace<Engine::MeshComponent>(knightEntity,
+            Engine::MeshComponent{ knightMesh, true });
+        scene.Registry().emplace<Engine::MeshSourceComponent>(knightEntity,
+            []{
+                Engine::MeshSourceComponent s;
+                s.Type = Engine::MeshSourceType::File;
+                return s;
+            }());
+        scene.Registry().get<Engine::MeshSourceComponent>(knightEntity).Filepath =
+            MODELS + "knight/scene.gltf";
+    }
 
-            Engine::Material containerMat;
-            containerMat.Albedo = { 1.0f, 1.0f, 1.0f };
-            containerMat.Metallic = 0.0f;
-            containerMat.Roughness = 0.5f;
-            containerMat.AlbedoMap = CONTAINER + "Container_DiffuseMap.jpg";
-            containerMat.SpecularMap = CONTAINER + "Container_SpecularMap.jpg";
-            containerMat.NormalMap = CONTAINER + "Container_NormalsMap.png";
-            scene.Registry().emplace<Engine::MaterialComponent>(containerEntity,
-                Engine::MaterialComponent{ containerMat });
-        }
+    // ---- 8 RGB-cycling point lights, arranged in a ring ----
+    // Each light is a real entity with PointLightComponent. Hue offset
+    // is baked in at creation; the loop below animates hue over time.
+    for (int i = 0; i < kLightCount; i++)
+    {
+        float angle = (DirectX::XM_2PI / kLightCount) * i;
+        float radius = 8.0f;
 
-        // ---- Knight (front-right) ----
-        knightMesh = std::make_shared<Engine::Mesh>();
-        knightLoaded = knightMesh->Load(renderer.GetDevice(), renderer.GetDeviceContext(),
-            MODELS + "knight/scene.gltf");
-        if (!knightLoaded) LOG_ERROR("Failed to load knight model.");
+        auto lightEntity = scene.CreateEntity("RGBLight" + std::to_string(i));
+        auto& t = scene.Registry().get<Engine::TransformComponent>(lightEntity);
+        t.Position = {
+            cosf(angle) * radius,
+            2.5f,
+            sinf(angle) * radius
+        };
 
-        auto knightEntity = scene.CreateEntity("Knight");
-        {
-            auto& t = scene.Registry().get<Engine::TransformComponent>(knightEntity);
-            t.Position = { 6.0f, 0.1f, -4.0f };
-            t.Rotation = { 180.0f, 0.0f, 0.0f };
-            t.Scale = { 0.08f, 0.08f, 0.08f };
+        float baseHue = (360.0f / kLightCount) * i;
 
-            scene.Registry().emplace<Engine::MeshComponent>(knightEntity,
-                Engine::MeshComponent{ knightMesh, true });
-            scene.Registry().emplace<Engine::MeshSourceComponent>(knightEntity,
-                [] {
-                    Engine::MeshSourceComponent s;
-                    s.Type = Engine::MeshSourceType::File;
-                    return s;
-                }());
-            scene.Registry().get<Engine::MeshSourceComponent>(knightEntity).Filepath =
-                MODELS + "knight/scene.gltf";
-        }
+        Engine::PointLightComponent plc;
+        plc.Light.Position  = t.Position;
+        plc.Light.Color     = Engine::HsvToRgb(baseHue, 1.0f, 1.0f);
+        plc.Light.Intensity = 150.0f;
+        plc.Light.Radius    = 12.0f;
+        scene.Registry().emplace<Engine::PointLightComponent>(lightEntity, plc);
 
-        // ---- 8 RGB-cycling point lights, arranged in a ring ----
-        // Each light is a real entity with PointLightComponent. Hue offset
-        // is baked in at creation; the loop below animates hue over time.
-        for (int i = 0; i < kLightCount; i++)
-        {
-            float angle = (DirectX::XM_2PI / kLightCount) * i;
-            float radius = 8.0f;
+        // BaseHue is stored on the entity itself, so the animation phase
+        // survives Save/Load and doesn't depend on iteration order.
+        scene.Registry().emplace<Engine::RGBCyclerComponent>(lightEntity,
+            Engine::RGBCyclerComponent{ baseHue, 40.0f });
+    }
 
-            auto lightEntity = scene.CreateEntity("RGBLight" + std::to_string(i));
-            auto& t = scene.Registry().get<Engine::TransformComponent>(lightEntity);
-            t.Position = {
-                cosf(angle) * radius,
-                2.5f,
-                sinf(angle) * radius
-            };
-
-            float baseHue = (360.0f / kLightCount) * i;
-
-            Engine::PointLightComponent plc;
-            plc.Light.Position = t.Position;
-            plc.Light.Color = Engine::HsvToRgb(baseHue, 1.0f, 1.0f);
-            plc.Light.Intensity = 150.0f;
-            plc.Light.Radius = 12.0f;
-            scene.Registry().emplace<Engine::PointLightComponent>(lightEntity, plc);
-
-            // BaseHue is stored on the entity itself, so the animation phase
-            // survives Save/Load and doesn't depend on iteration order.
-            scene.Registry().emplace<Engine::RGBCyclerComponent>(lightEntity,
-                Engine::RGBCyclerComponent{ baseHue, 40.0f });
-        }
-
-        // ---- Directional light entity ----
-        auto sunEntity = scene.CreateEntity("Sun");
-        {
-            Engine::DirectionalLightComponent sun;
-            sun.Light.Direction = { 0.5f, -1.0f, 0.3f };
-            sun.Light.Color = { 1.0f, 0.95f, 0.9f };
-            sun.Light.Intensity = lightIntensity;
-            scene.Registry().emplace<Engine::DirectionalLightComponent>(sunEntity, sun);
-        }
+    // ---- Directional light entity ----
+    auto sunEntity = scene.CreateEntity("Sun");
+    {
+        Engine::DirectionalLightComponent sun;
+        sun.Light.Direction = { 0.5f, -1.0f, 0.3f };
+        sun.Light.Color     = { 1.0f, 0.95f, 0.9f };
+        sun.Light.Intensity = lightIntensity;
+        scene.Registry().emplace<Engine::DirectionalLightComponent>(sunEntity, sun);
+    }
 
     } // end if (!loadedFromFile) — demo scene block
 
@@ -523,20 +535,14 @@ int main(int argc, char** argv)
             LOG_WARN("!! Current changes only work with shadows. TBE later !!");
         }
 
-        if (Engine::InputManager::IsKeyPressed(Engine::Key::Escape))
-        {
-			LOG_WARN("Exiting process.");
-			return -1;
-        }
-
         // ---- Scene save/load test hotkeys ----
         if (Engine::InputManager::IsKeyPressed(Engine::Key::F6))
         {
-            Engine::SceneSerializer::Save(scene, "scene.json");
+            Engine::SceneSerializer::Save(scene, "scene.pesf");
         }
         if (Engine::InputManager::IsKeyPressed(Engine::Key::F7))
         {
-            Engine::SceneSerializer::Load(scene, "scene.json",
+            Engine::SceneSerializer::Load(scene, "scene.pesf",
                 renderer.GetDevice(), renderer.GetDeviceContext());
         }
 
@@ -556,7 +562,7 @@ int main(int argc, char** argv)
             for (auto e : view)
             {
                 auto& cycler = view.get<Engine::RGBCyclerComponent>(e);
-                auto& light = view.get<Engine::PointLightComponent>(e).Light;
+                auto& light  = view.get<Engine::PointLightComponent>(e).Light;
 
                 float hue = fmodf(cycler.BaseHue + rgbTime * cycler.DegreesPerSecond, 360.0f);
                 light.Color = Engine::HsvToRgb(hue, 1.0f, 1.0f);
@@ -617,7 +623,7 @@ int main(int argc, char** argv)
                 auto& light = view.get<Engine::PointLightComponent>(e).Light;
 
                 Engine::Material bulbMat;
-                bulbMat.Albedo = light.Color;
+                bulbMat.Albedo    = light.Color;
                 bulbMat.Roughness = 0.3f;
                 bulb.SetPosition(light.Position.x, light.Position.y, light.Position.z);
                 renderer3D.DrawMesh(bulb, bulb.GetWorldMatrix(), bulbMat);
@@ -632,13 +638,13 @@ int main(int argc, char** argv)
         {
             auto camPos = camera3D.GetPosition();
 
-            int f1Tris = f1Loaded ? f1Mesh->GetIndexCount() / 3 : 0;
+            int f1Tris        = f1Loaded        ? f1Mesh->GetIndexCount() / 3        : 0;
             int containerTris = containerLoaded ? containerMesh->GetIndexCount() / 3 : 0;
-            int swordTris = swordLoaded ? swordMesh->GetIndexCount() / 3 : 0;
-            int angelTris = angelLoaded ? angelMesh->GetIndexCount() / 3 : 0;
-            int knightTris = knightLoaded ? knightMesh->GetIndexCount() / 3 : 0;
-            int bulbTris = bulbLoaded ? bulb.GetIndexCount() / 3 : 0;
-            int floorTris = floorMesh ? floorMesh->GetIndexCount() / 3 : 0;
+            int swordTris     = swordLoaded     ? swordMesh->GetIndexCount() / 3     : 0;
+            int angelTris     = angelLoaded     ? angelMesh->GetIndexCount() / 3     : 0;
+            int knightTris    = knightLoaded    ? knightMesh->GetIndexCount() / 3    : 0;
+            int bulbTris      = bulbLoaded      ? bulb.GetIndexCount() / 3           : 0;
+            int floorTris     = floorMesh ? floorMesh->GetIndexCount() / 3 : 0;
             int totalTris = f1Tris + containerTris + swordTris + angelTris +
                 knightTris + bulbTris * 2 + floorTris;
             int totalVerts = totalTris * 3;
@@ -685,9 +691,8 @@ int main(int argc, char** argv)
                 "  F4             shadows\n" +
                 "  Up/Down        shadow quality\n" +
                 "  LAlt+U         update and reinit (to apply changes)\n" +
-                "  F6             save scene.json\n" +
-                "  F7             load scene.json\n" +
-                "  Esc            quit";
+                "  F6             save scene.pesf\n" +
+                "  F7             load scene.pesf";
 
             renderer2D.DrawText(font, info, 10.0f, 10.0f, 1.0f, 1.0f, 1.0f);
         }

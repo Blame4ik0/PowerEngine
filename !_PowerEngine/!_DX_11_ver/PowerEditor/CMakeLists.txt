@@ -1,19 +1,25 @@
 cmake_minimum_required(VERSION 3.20)
+
+# vcpkg toolchain must be set BEFORE project() — this is the only reliable
+# way to guarantee it loads regardless of Qt Creator's CMake argument handling.
+# Hardcoded here because Qt Creator consistently mangles the path when set
+# via the kit UI (strips the drive letter colon, making the path invalid).
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "C:/!_DEV/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE FILEPATH "")
+endif()
+set(VCPKG_TARGET_TRIPLET "x64-mingw-dynamic" CACHE STRING "" FORCE)
+
 project(PowerEditor LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Qt's moc/uic/rcc need these on
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# ---- Qt 6.10.1, MinGW kit (confirmed from install — no MSVC Qt present) ----
-# Adjust this path if your Qt version folder differs.
-set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64" ${CMAKE_PREFIX_PATH})
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
+find_package(assimp CONFIG REQUIRED)
 
 add_executable(PowerEditor
     src/main.cpp
@@ -27,11 +33,16 @@ add_executable(PowerEditor
     src/SceneDocument.h
     src/RunSettingsDialog.cpp
     src/RunSettingsDialog.h
+    src/ViewportWidget.cpp
+    src/ViewportWidget.h
+    src/MeshBoundsCache.cpp
+    src/MeshBoundsCache.h
+    src/ModelPreviewDialog.cpp
+    src/ModelPreviewDialog.h
+    src/AssetPathResolver.cpp
+    src/AssetPathResolver.h
 )
 
-# nlohmann/json is vendored as a single header (third_party/nlohmann/json.hpp)
-# since vcpkg's MSVC-built package can't be linked from this MinGW toolchain.
-# It's header-only and template-based, so there's no ABI to worry about.
 target_include_directories(PowerEditor PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party
 )
@@ -39,4 +50,5 @@ target_include_directories(PowerEditor PRIVATE
 target_link_libraries(PowerEditor PRIVATE
     Qt6::Widgets
     Qt6::OpenGLWidgets
+    assimp::assimp
 )

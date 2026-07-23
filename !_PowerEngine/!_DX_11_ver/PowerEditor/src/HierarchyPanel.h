@@ -14,6 +14,11 @@ class HierarchyPanel : public QWidget
 public:
     explicit HierarchyPanel(SceneDocument* doc, QWidget* parent = nullptr);
 
+public slots:
+    // Highlights a row without re-emitting EntitySelected (avoids feedback
+    // loop when the viewport picks an entity and wants the list to match).
+    void SelectRow(int index);
+
 signals:
     void EntitySelected(int index);
 

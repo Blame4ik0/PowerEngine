@@ -39,6 +39,13 @@ void HierarchyPanel::OnSceneChanged()
     RefreshList();
 }
 
+void HierarchyPanel::SelectRow(int index)
+{
+    m_list->blockSignals(true);
+    m_list->setCurrentRow(index);
+    m_list->blockSignals(false);
+}
+
 void HierarchyPanel::RefreshList()
 {
     m_list->blockSignals(true);

@@ -5,6 +5,8 @@
 class HierarchyPanel;
 class InspectorPanel;
 class RunSettingsDialog;
+class ViewportWidget;
+class ModelPreviewDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -19,6 +21,8 @@ private slots:
     void OnSaveSceneAs();
     void OnRunClicked();
     void OnRunSettingsClicked();
+    void OnPreviewModelClicked();
+    void OnEntitySelected(int index);
 
 private:
     void BuildMenusAndToolbar();
@@ -30,6 +34,8 @@ private:
     HierarchyPanel*     m_hierarchy;
     InspectorPanel*     m_inspector;
     RunSettingsDialog*  m_runSettings;
+    ViewportWidget*     m_viewport;
 
+    int     m_selectedEntityIndex = -1;
     QString m_currentScenePath; // empty until first Save/Open
 };
